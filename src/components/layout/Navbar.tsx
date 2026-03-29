@@ -2,13 +2,19 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { Menu, X, ChevronDown, User } from 'lucide-react';
+import { useSession, signOut } from 'next-auth/react';
+import { Menu, X, ChevronDown, User, LogOut, LayoutDashboard, Shield } from 'lucide-react';
 import { NAV_LINKS, COMPANY } from '@/lib/constants';
 import Button from '@/components/ui/Button';
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [servicesOpen, setServicesOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const { data: session, status } = useSession();
+  const isAuth = status === 'authenticated';
+  const userRole = (session?.user as unknown as { role?: string })?.role;
+  const isAdmin = userRole === 'admin' || userRole === 'receptionist';
 
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-border">
@@ -71,12 +77,56 @@ export default function Navbar() {
 
           {/* Desktop Actions */}
           <div className="hidden lg:flex items-center space-x-3">
-            <Link href="/auth/signin">
-              <Button variant="ghost" size="sm">
-                <User className="h-4 w-4 mr-1" />
-                Sign In
-              </Button>
-            </Link>
+            {isAuth ? (
+              <div
+                className="relative"
+                onMouseEnter={() => setUserMenuOpen(true)}
+                onMouseLeave={() => setUserMenuOpen(false)}
+              >
+                <button className="flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                    <User className="h-4 w-4 text-primary" />
+                  </div>
+                  <span>{session?.user?.name || 'Account'}</span>
+                  <ChevronDown className="h-3 w-3" />
+                </button>
+                {userMenuOpen && (
+                  <div className="absolute right-0 top-full w-48 bg-white rounded-xl shadow-lg border border-border py-2 mt-0 z-50">
+                    <Link
+                      href="/dashboard"
+                      className="flex items-center px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                    >
+                      <LayoutDashboard className="h-4 w-4 mr-2" />
+                      Dashboard
+                    </Link>
+                    {isAdmin && (
+                      <Link
+                        href="/admin"
+                        className="flex items-center px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                      >
+                        <Shield className="h-4 w-4 mr-2" />
+                        Admin Panel
+                      </Link>
+                    )}
+                    <div className="border-t border-border my-1" />
+                    <button
+                      onClick={() => signOut({ callbackUrl: '/' })}
+                      className="flex items-center w-full px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+                    >
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Sign Out
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link href="/auth/signin">
+                <Button variant="ghost" size="sm">
+                  <User className="h-4 w-4 mr-1" />
+                  Sign In
+                </Button>
+              </Link>
+            )}
             <Link href="/book">
               <Button size="sm">Book Now</Button>
             </Link>
@@ -132,9 +182,32 @@ export default function Navbar() {
               )}
             </div>
             <div className="mt-4 pt-4 border-t border-border flex flex-col space-y-2 px-3">
-              <Link href="/auth/signin" onClick={() => setMobileOpen(false)}>
-                <Button variant="outline" className="w-full">Sign In</Button>
-              </Link>
+              {isAuth ? (
+                <>
+                  <Link href="/dashboard" onClick={() => setMobileOpen(false)}>
+                    <Button variant="outline" className="w-full">
+                      <LayoutDashboard className="h-4 w-4 mr-2" />
+                      Dashboard
+                    </Button>
+                  </Link>
+                  {isAdmin && (
+                    <Link href="/admin" onClick={() => setMobileOpen(false)}>
+                      <Button variant="outline" className="w-full">
+                        <Shield className="h-4 w-4 mr-2" />
+                        Admin Panel
+                      </Button>
+                    </Link>
+                  )}
+                  <Button variant="ghost" className="w-full" onClick={() => { signOut({ callbackUrl: '/' }); setMobileOpen(false); }}>
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sign Out
+                  </Button>
+                </>
+              ) : (
+                <Link href="/auth/signin" onClick={() => setMobileOpen(false)}>
+                  <Button variant="outline" className="w-full">Sign In</Button>
+                </Link>
+              )}
               <Link href="/book" onClick={() => setMobileOpen(false)}>
                 <Button className="w-full">Book Now</Button>
               </Link>

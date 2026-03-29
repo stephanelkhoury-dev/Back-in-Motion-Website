@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { signOut } from 'next-auth/react';
 import { cn } from '@/lib/utils';
 import {
   LayoutDashboard, Calendar, Dumbbell, TrendingUp, History,
@@ -61,13 +62,13 @@ export default function DashboardSidebar() {
       </nav>
 
       <div className="p-3 border-t border-border">
-        <Link
-          href="/"
-          className="flex items-center px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+        <button
+          onClick={() => signOut({ callbackUrl: '/' })}
+          className="flex items-center w-full px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
         >
           <LogOut className="h-4 w-4 mr-3" />
           Sign Out
-        </Link>
+        </button>
       </div>
     </aside>
   );

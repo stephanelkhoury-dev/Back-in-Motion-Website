@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { signOut } from 'next-auth/react';
 import { cn } from '@/lib/utils';
 import {
   LayoutDashboard, Calendar, Users, Stethoscope, Package,
@@ -62,13 +63,13 @@ export default function AdminSidebar() {
       </nav>
 
       <div className="p-3 border-t border-white/10">
-        <Link
-          href="/"
-          className="flex items-center px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+        <button
+          onClick={() => signOut({ callbackUrl: '/' })}
+          className="flex items-center w-full px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
         >
           <LogOut className="h-4 w-4 mr-3" />
           Sign Out
-        </Link>
+        </button>
       </div>
     </aside>
   );
