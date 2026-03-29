@@ -112,7 +112,7 @@ function generateMockResponse(userMessage: string): string {
   }
 
   if (lower.includes('progress') || lower.includes('better')) {
-    return "It's great to check in on your progress! Recovery is a journey, and every small improvement counts. Based on your recent workout logs, you're showing consistent improvements. Keep up the great work! 💪";
+    return "It's great to check in on your progress! Recovery is a journey, and every small improvement counts. Based on your recent workout logs, you're showing consistent improvements. Keep up the great work!";
   }
 
   if (lower.includes('hello') || lower.includes('hi') || lower.includes('hey')) {

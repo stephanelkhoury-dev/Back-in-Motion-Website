@@ -2,7 +2,7 @@
 
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
-import { TrendingUp, Users, Calendar, DollarSign, BarChart3, Activity } from 'lucide-react';
+import { TrendingUp, Users, Calendar, DollarSign, BarChart3, Activity, Star } from 'lucide-react';
 
 export default function AdminAnalyticsPage() {
   const kpis = [
@@ -167,7 +167,7 @@ export default function AdminAnalyticsPage() {
                       <td className="py-2 text-sm font-medium text-foreground">{s.name}</td>
                       <td className="py-2 text-sm text-muted-foreground">{s.sessions}</td>
                       <td className="py-2 text-sm text-muted-foreground">{s.clients}</td>
-                      <td className="py-2 text-sm text-foreground">⭐ {s.satisfaction}</td>
+                      <td className="py-2 text-sm text-foreground flex items-center"><Star className="h-4 w-4 text-yellow-500 mr-1" /> {s.satisfaction}</td>
                     </tr>
                   ))}
                 </tbody>

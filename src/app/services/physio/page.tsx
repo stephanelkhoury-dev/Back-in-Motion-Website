@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { CheckCircle, ArrowRight, Upload, ClipboardList, Calendar, TrendingUp, Dumbbell, FileText } from 'lucide-react';
+import { CheckCircle, ArrowRight, Upload, ClipboardList, Calendar, TrendingUp, Dumbbell, FileText, Trophy, Bone, Hand, Brain, Baby, PersonStanding, Wind, Heart } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
@@ -15,14 +15,14 @@ export default async function PhysioPage() {
   const PACKAGES = await getPackages();
 
   const PHYSIO_SPECIALTIES = [
-    { id: 'sports_rehab', name: 'Sports Rehabilitation', icon: '⚽', description: 'Recovery and performance programs for athletes and sports injuries.' },
-    { id: 'orthopedic_rehab', name: 'Orthopedic Rehabilitation', icon: '🦴', description: 'Post-surgery and musculoskeletal condition rehabilitation.' },
-    { id: 'rheumatology_rehab', name: 'Rheumatology Rehabilitation', icon: '🤲', description: 'Management of arthritis, joint, and autoimmune conditions.' },
-    { id: 'neurological_rehab', name: 'Neurological Rehabilitation', icon: '🧠', description: 'Recovery programs for stroke, spinal cord, and neurological conditions.' },
-    { id: 'pediatric_rehab', name: 'Pediatric Rehabilitation', icon: '👶', description: 'Specialized therapy for children and developmental conditions.' },
-    { id: 'geriatric_rehab', name: 'Geriatric Rehabilitation', icon: '🧓', description: 'Age-related mobility and strength improvement programs.' },
-    { id: 'respiratory_rehab', name: 'Respiratory Rehabilitation', icon: '🫁', description: 'Breathing exercise programs and lung function improvement.' },
-    { id: 'post_pregnancy_rehab', name: 'Post-Pregnancy Rehabilitation', icon: '🤱', description: 'Recovery programs for new mothers, including pelvic floor therapy.' },
+    { id: 'sports_rehab', name: 'Sports Rehabilitation', icon: Trophy, description: 'Recovery and performance programs for athletes and sports injuries.' },
+    { id: 'orthopedic_rehab', name: 'Orthopedic Rehabilitation', icon: Bone, description: 'Post-surgery and musculoskeletal condition rehabilitation.' },
+    { id: 'rheumatology_rehab', name: 'Rheumatology Rehabilitation', icon: Hand, description: 'Management of arthritis, joint, and autoimmune conditions.' },
+    { id: 'neurological_rehab', name: 'Neurological Rehabilitation', icon: Brain, description: 'Recovery programs for stroke, spinal cord, and neurological conditions.' },
+    { id: 'pediatric_rehab', name: 'Pediatric Rehabilitation', icon: Baby, description: 'Specialized therapy for children and developmental conditions.' },
+    { id: 'geriatric_rehab', name: 'Geriatric Rehabilitation', icon: PersonStanding, description: 'Age-related mobility and strength improvement programs.' },
+    { id: 'respiratory_rehab', name: 'Respiratory Rehabilitation', icon: Wind, description: 'Breathing exercise programs and lung function improvement.' },
+    { id: 'post_pregnancy_rehab', name: 'Post-Pregnancy Rehabilitation', icon: Heart, description: 'Recovery programs for new mothers, including pelvic floor therapy.' },
   ];
 
   const features = [
@@ -65,7 +65,9 @@ export default async function PhysioPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {PHYSIO_SPECIALTIES.map((specialty) => (
               <Card key={specialty.id} hover className="text-center">
-                <div className="text-4xl mb-3">{specialty.icon}</div>
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                  <specialty.icon className="h-6 w-6 text-primary" />
+                </div>
                 <h3 className="font-semibold text-foreground mb-2">{specialty.name}</h3>
                 <p className="text-sm text-muted-foreground">{specialty.description}</p>
               </Card>

@@ -95,14 +95,14 @@ export const SERVICES: Service[] = [
 // Physio Specialties
 // ============================================
 export const PHYSIO_SPECIALTIES = [
-  { id: 'sports_rehab', name: 'Sports Rehabilitation', icon: '⚽', description: 'Recovery and performance programs for athletes and sports injuries.' },
-  { id: 'orthopedic_rehab', name: 'Orthopedic Rehabilitation', icon: '🦴', description: 'Post-surgery and musculoskeletal condition rehabilitation.' },
-  { id: 'rheumatology_rehab', name: 'Rheumatology Rehabilitation', icon: '🤲', description: 'Management of arthritis, joint, and autoimmune conditions.' },
-  { id: 'neurological_rehab', name: 'Neurological Rehabilitation', icon: '🧠', description: 'Recovery programs for stroke, spinal cord, and neurological conditions.' },
-  { id: 'pediatric_rehab', name: 'Pediatric Rehabilitation', icon: '👶', description: 'Specialized therapy for children and developmental conditions.' },
-  { id: 'geriatric_rehab', name: 'Geriatric Rehabilitation', icon: '🧓', description: 'Age-related mobility and strength improvement programs.' },
-  { id: 'respiratory_rehab', name: 'Respiratory Rehabilitation', icon: '🫁', description: 'Breathing exercise programs and lung function improvement.' },
-  { id: 'post_pregnancy_rehab', name: 'Post-Pregnancy Rehabilitation', icon: '🤱', description: 'Recovery programs for new mothers, including pelvic floor therapy.' },
+  { id: 'sports_rehab', name: 'Sports Rehabilitation', icon: 'Trophy', description: 'Recovery and performance programs for athletes and sports injuries.' },
+  { id: 'orthopedic_rehab', name: 'Orthopedic Rehabilitation', icon: 'Bone', description: 'Post-surgery and musculoskeletal condition rehabilitation.' },
+  { id: 'rheumatology_rehab', name: 'Rheumatology Rehabilitation', icon: 'Hand', description: 'Management of arthritis, joint, and autoimmune conditions.' },
+  { id: 'neurological_rehab', name: 'Neurological Rehabilitation', icon: 'Brain', description: 'Recovery programs for stroke, spinal cord, and neurological conditions.' },
+  { id: 'pediatric_rehab', name: 'Pediatric Rehabilitation', icon: 'Baby', description: 'Specialized therapy for children and developmental conditions.' },
+  { id: 'geriatric_rehab', name: 'Geriatric Rehabilitation', icon: 'PersonStanding', description: 'Age-related mobility and strength improvement programs.' },
+  { id: 'respiratory_rehab', name: 'Respiratory Rehabilitation', icon: 'Wind', description: 'Breathing exercise programs and lung function improvement.' },
+  { id: 'post_pregnancy_rehab', name: 'Post-Pregnancy Rehabilitation', icon: 'Heart', description: 'Recovery programs for new mothers, including pelvic floor therapy.' },
 ];
 
 // ============================================
