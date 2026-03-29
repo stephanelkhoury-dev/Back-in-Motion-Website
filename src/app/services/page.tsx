@@ -4,7 +4,7 @@ import { ArrowRight, Activity, Utensils, Sparkles, Zap, Dumbbell, Bot } from 'lu
 import Card, { CardContent } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
-import { SERVICES } from '@/lib/constants';
+import { getServices } from '@/lib/data';
 
 export const metadata: Metadata = {
   title: 'Services | Nicolas Web',
@@ -19,7 +19,8 @@ const SERVICE_ICONS: Record<string, React.ComponentType<React.SVGProps<SVGSVGEle
   gym: Dumbbell,
 };
 
-export default function ServicesPage() {
+export default async function ServicesPage() {
+  const SERVICES = await getServices();
   return (
     <>
       <section className="bg-muted py-20">

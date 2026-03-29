@@ -4,14 +4,23 @@ import { CheckCircle, ArrowRight, Sparkles, Ruler, Camera, ClipboardList, Timer,
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
-import { AESTHETIC_TREATMENTS, PACKAGES } from '@/lib/constants';
+import { getPackages } from '@/lib/data';
 
 export const metadata: Metadata = {
   title: 'Body Shaping & Aesthetics | Nicolas Web',
   description: 'LPG endermologie, cavitation, body firming, lymphatic drainage, and post-pregnancy aesthetic treatments.',
 };
 
-export default function LPGBodyShapingPage() {
+export default async function LPGBodyShapingPage() {
+  const PACKAGES = await getPackages();
+
+  const AESTHETIC_TREATMENTS = [
+    { id: 'fat_reduction', name: 'Fat Reduction', description: 'Non-invasive fat reduction using cavitation and radio-frequency technology.' },
+    { id: 'body_firming', name: 'Body Firming', description: 'Skin tightening and muscle toning treatments for a defined silhouette.' },
+    { id: 'lymphatic_drainage', name: 'Lymphatic Drainage', description: 'Manual and machine-assisted drainage to reduce swelling and detoxify.' },
+    { id: 'post_pregnancy_aesthetic', name: 'Post-Pregnancy Treatment', description: 'Targeted body restoration programs for new mothers.' },
+  ];
+
   const features = [
     { icon: ClipboardList, title: 'Package Selection', description: 'Choose from targeted body area packages or full-body programs.' },
     { icon: Sparkles, title: 'Target Area Selection', description: 'Focus on specific areas: abdomen, thighs, arms, or full body.' },
@@ -97,7 +106,7 @@ export default function LPGBodyShapingPage() {
                   <span className="text-3xl font-bold text-primary">${pkg.price}</span>
                 </div>
                 <ul className="space-y-2 mb-6">
-                  {pkg.features.map((f) => (
+                  {(pkg.features as string[]).map((f) => (
                     <li key={f} className="flex items-center text-sm text-muted-foreground">
                       <CheckCircle className="h-4 w-4 text-success mr-2 flex-shrink-0" />
                       {f}

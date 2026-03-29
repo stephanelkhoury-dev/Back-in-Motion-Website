@@ -3,15 +3,24 @@ import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import { Search, Plus } from 'lucide-react';
+import { redirect } from 'next/navigation';
+import { getSessionUser, getAdminClients } from '@/lib/data';
 
-export default function AdminClientsPage() {
-  const clients = [
-    { id: 'C-001', name: 'Rami Saleh', email: 'rami@example.com', phone: '+961 71 123 456', joined: 'Jan 15, 2026', activePackages: 2, sessions: 14, lastVisit: 'Mar 25, 2026' },
-    { id: 'C-002', name: 'Diana Mansour', email: 'diana@example.com', phone: '+961 70 234 567', joined: 'Feb 1, 2026', activePackages: 1, sessions: 8, lastVisit: 'Mar 22, 2026' },
-    { id: 'C-003', name: 'Lea Khoury', email: 'lea@example.com', phone: '+961 76 345 678', joined: 'Feb 10, 2026', activePackages: 1, sessions: 4, lastVisit: 'Mar 18, 2026' },
-    { id: 'C-004', name: 'Jad Haddad', email: 'jad@example.com', phone: '+961 03 456 789', joined: 'Mar 1, 2026', activePackages: 2, sessions: 6, lastVisit: 'Mar 20, 2026' },
-    { id: 'C-005', name: 'Nadia Abboud', email: 'nadia@example.com', phone: '+961 78 567 890', joined: 'Mar 5, 2026', activePackages: 1, sessions: 3, lastVisit: 'Mar 20, 2026' },
-  ];
+export default async function AdminClientsPage() {
+  const user = await getSessionUser();
+  if (!user || (user.role !== 'admin' && user.role !== 'receptionist')) redirect('/auth/signin');
+
+  const rawClients = await getAdminClients();
+  const clients = rawClients.map((c) => ({
+    id: c.id.slice(0, 8),
+    name: `${c.firstName} ${c.lastName}`,
+    email: c.email,
+    phone: c.phone || '-',
+    joined: new Date(c.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+    activePackages: c.subscriptions.length,
+    sessions: c._count.clientAppointments,
+    lastVisit: '-',
+  }));
 
   return (
     <div className="max-w-6xl mx-auto">

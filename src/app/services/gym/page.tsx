@@ -4,14 +4,16 @@ import { CheckCircle, ArrowRight, Dumbbell, Users, Bot, PlayCircle, BarChart3, C
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
-import { PACKAGES } from '@/lib/constants';
+import { getPackages } from '@/lib/data';
 
 export const metadata: Metadata = {
   title: 'Gym & Personal Training | Nicolas Web',
   description: 'Modern gym facilities with personal training, group classes, and AI-powered E-Coach for smart, affordable fitness.',
 };
 
-export default function GymPage() {
+export default async function GymPage() {
+  const PACKAGES = await getPackages();
+
   const features = [
     { icon: Calendar, title: 'Membership Plans', description: 'Monthly, quarterly, and annual memberships with flexible upgrade paths.' },
     { icon: Users, title: 'Trainer Assignment', description: 'Get matched with a certified personal trainer based on your goals.' },
@@ -133,7 +135,7 @@ export default function GymPage() {
                   <span className="text-muted-foreground text-sm">/month</span>
                 </div>
                 <ul className="space-y-2 mb-6">
-                  {pkg.features.map((f) => (
+                  {(pkg.features as string[]).map((f) => (
                     <li key={f} className="flex items-center text-sm text-muted-foreground">
                       <CheckCircle className="h-4 w-4 text-success mr-2 flex-shrink-0" />
                       {f}

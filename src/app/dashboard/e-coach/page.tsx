@@ -1,30 +1,57 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Bot, Send, Dumbbell, TrendingUp, AlertTriangle, Lightbulb } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 
+interface Message {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
 export default function ECoachDashboardPage() {
-  const [messages, setMessages] = useState([
-    { role: 'assistant' as const, content: 'Good morning! How are you feeling today? Let\u2019s check in before your workout.' },
-    { role: 'user' as const, content: 'Feeling good, knee is a bit stiff but much better than last week.' },
-    { role: 'assistant' as const, content: 'That\u2019s great progress! Since your knee is still a bit stiff, I\u2019ll adjust today\u2019s workout to include extra warm-up stretches. Here\u2019s your plan for today:\n\n1. Hamstring Stretch - 3x30s hold\n2. Wall Squats - 3x12 reps\n3. Single Leg Balance - 3x30s each\n4. Resistance Band Rows - 3x15 reps\n5. Planks - 3x30s hold\n\nRemember to stop any exercise if you feel sharp pain. Ready to start?' },
+  const [messages, setMessages] = useState<Message[]>([
+    { role: 'assistant', content: 'Good morning! How are you feeling today? Let\u2019s check in before your workout.' },
   ]);
   const [input, setInput] = useState('');
+  const [sending, setSending] = useState(false);
 
-  const handleSend = () => {
-    if (!input.trim()) return;
-    setMessages([...messages, { role: 'user', content: input }]);
+  useEffect(() => {
+    fetch('/api/ecoach')
+      .then((r) => r.json())
+      .then((convos) => {
+        if (convos.length > 0 && convos[0].messages?.length > 0) {
+          setMessages(convos[0].messages.map((m: { role: string; content: string }) => ({
+            role: m.role as 'user' | 'assistant',
+            content: m.content,
+          })));
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleSend = async () => {
+    if (!input.trim() || sending) return;
+    const userMsg = input;
+    setMessages((prev) => [...prev, { role: 'user', content: userMsg }]);
     setInput('');
-    // Simulate response
-    setTimeout(() => {
-      setMessages((prev) => [...prev, {
-        role: 'assistant',
-        content: 'Great job staying consistent! After your workout, make sure to ice your knee for 15 minutes and drink plenty of water. I\u2019ll check in with you tomorrow to see how you\u2019re feeling.',
-      }]);
-    }, 1000);
+    setSending(true);
+    try {
+      const res = await fetch('/api/ecoach', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: userMsg }),
+      });
+      const data = await res.json();
+      if (data.message?.content) {
+        setMessages((prev) => [...prev, { role: 'assistant', content: data.message.content }]);
+      }
+    } catch {
+      setMessages((prev) => [...prev, { role: 'assistant', content: 'Sorry, something went wrong. Please try again.' }]);
+    }
+    setSending(false);
   };
 
   const dailyTips = [

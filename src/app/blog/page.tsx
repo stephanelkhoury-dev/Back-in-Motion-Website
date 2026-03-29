@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { Calendar, Tag } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
-import { BLOG_POSTS } from '@/lib/constants';
+import { getBlogPosts } from '@/lib/data';
 import { formatDate } from '@/lib/utils';
 
 export const metadata: Metadata = {
@@ -11,7 +11,8 @@ export const metadata: Metadata = {
   description: 'Expert articles on physiotherapy, nutrition, fitness, body shaping, and wellness from our clinical team.',
 };
 
-export default function BlogPage() {
+export default async function BlogPage() {
+  const BLOG_POSTS = await getBlogPosts();
   return (
     <>
       <section className="bg-muted py-20">
@@ -40,12 +41,12 @@ export default function BlogPage() {
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
                     <div className="flex items-center">
                       <Calendar className="h-3 w-3 mr-1" />
-                      {formatDate(post.publishedAt)}
+                      {post.publishedAt ? formatDate(post.publishedAt.toISOString()) : 'Draft'}
                     </div>
                     <span>{post.author}</span>
                   </div>
                   <div className="flex flex-wrap gap-1 mt-3">
-                    {post.tags.map((tag) => (
+                    {(post.tags as string[]).map((tag) => (
                       <span key={tag} className="flex items-center text-xs text-muted-foreground">
                         <Tag className="h-2.5 w-2.5 mr-0.5" />{tag}
                       </span>

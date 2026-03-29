@@ -4,7 +4,6 @@ import { CheckCircle, ArrowRight, Bot, Brain, Target, Bell, TrendingUp, MessageC
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
-import { PACKAGES } from '@/lib/constants';
 
 export const metadata: Metadata = {
   title: 'E-Coach AI | Nicolas Web',

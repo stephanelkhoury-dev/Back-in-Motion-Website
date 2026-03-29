@@ -3,16 +3,24 @@ import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
+import { getSessionUser, getClientAppointments } from '@/lib/data';
 
-export default function AppointmentsPage() {
-  const appointments = [
-    { id: 1, service: 'Physiotherapy', specialist: 'Dr. Nicolas Khoury', date: 'Apr 2, 2026', time: '10:00 AM', duration: '60 min', status: 'confirmed', room: 'Room A' },
-    { id: 2, service: 'Dietitian Consultation', specialist: 'Sarah Mansour', date: 'Apr 5, 2026', time: '2:00 PM', duration: '45 min', status: 'scheduled', room: 'Online' },
-    { id: 3, service: 'Body Shaping (LPG)', specialist: 'Lara Haddad', date: 'Apr 8, 2026', time: '11:00 AM', duration: '45 min', status: 'confirmed', room: 'Room C' },
-    { id: 4, service: 'Physiotherapy', specialist: 'Dr. Nicolas Khoury', date: 'Mar 25, 2026', time: '10:00 AM', duration: '60 min', status: 'completed', room: 'Room A' },
-    { id: 5, service: 'Electrolysis', specialist: 'Nour Khalil', date: 'Mar 20, 2026', time: '3:00 PM', duration: '30 min', status: 'completed', room: 'Room D' },
-    { id: 6, service: 'Physiotherapy', specialist: 'Dr. Nicolas Khoury', date: 'Mar 15, 2026', time: '10:00 AM', duration: '60 min', status: 'cancelled', room: 'Room A' },
-  ];
+export default async function AppointmentsPage() {
+  const user = await getSessionUser();
+  if (!user) redirect('/auth/signin');
+
+  const rawAppointments = await getClientAppointments(user.id);
+  const appointments = rawAppointments.map((a) => ({
+    id: a.id,
+    service: a.service.name,
+    specialist: `${a.practitioner.firstName} ${a.practitioner.lastName}`,
+    date: new Date(a.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+    time: a.startTime,
+    duration: `${a.service.duration} min`,
+    status: a.status,
+    room: a.roomOrEquipment || '-',
+  }));
 
   const statusColors: Record<string, 'success' | 'primary' | 'danger' | 'default'> = {
     confirmed: 'success',

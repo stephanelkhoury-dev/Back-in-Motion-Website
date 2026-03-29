@@ -3,32 +3,49 @@ import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
+import { getSessionUser, getClientAppointments, getClientSubscriptions, getClientReminders, getClientExerciseAssignments } from '@/lib/data';
 
-export default function DashboardPage() {
-  // Mock data — would come from API in production
+export default async function DashboardPage() {
+  const user = await getSessionUser();
+  if (!user) redirect('/auth/signin');
+
+  const [appointments, subscriptions, remindersData, assignments] = await Promise.all([
+    getClientAppointments(user.id),
+    getClientSubscriptions(user.id),
+    getClientReminders(user.id),
+    getClientExerciseAssignments(user.id),
+  ]);
+
+  const upcomingAppointments = appointments
+    .filter((a) => ['scheduled', 'confirmed'].includes(a.status))
+    .slice(0, 3);
+
+  const totalSessionsRemaining = subscriptions
+    .filter((s) => s.status === 'active')
+    .reduce((sum, s) => sum + (s.sessionsTotal - s.sessionsUsed), 0);
+
   const stats = [
-    { label: 'Upcoming Appointments', value: '3', icon: Calendar, color: 'text-primary', bg: 'bg-primary/10' },
-    { label: 'Sessions Remaining', value: '7', icon: Clock, color: 'text-success', bg: 'bg-success/10' },
-    { label: 'Exercises Assigned', value: '5', icon: Dumbbell, color: 'text-secondary', bg: 'bg-secondary/10' },
-    { label: 'Compliance Rate', value: '85%', icon: TrendingUp, color: 'text-accent', bg: 'bg-accent/10' },
+    { label: 'Upcoming Appointments', value: String(upcomingAppointments.length), icon: Calendar, color: 'text-primary', bg: 'bg-primary/10' },
+    { label: 'Sessions Remaining', value: String(totalSessionsRemaining), icon: Clock, color: 'text-success', bg: 'bg-success/10' },
+    { label: 'Exercises Assigned', value: String(assignments.length), icon: Dumbbell, color: 'text-secondary', bg: 'bg-secondary/10' },
+    { label: 'Active Subscriptions', value: String(subscriptions.filter((s) => s.status === 'active').length), icon: TrendingUp, color: 'text-accent', bg: 'bg-accent/10' },
   ];
 
-  const upcomingAppointments = [
-    { id: 1, service: 'Physiotherapy', specialist: 'Dr. Nicolas Khoury', date: 'Apr 2, 2026', time: '10:00 AM', status: 'confirmed' },
-    { id: 2, service: 'Dietitian', specialist: 'Sarah Mansour', date: 'Apr 5, 2026', time: '2:00 PM', status: 'scheduled' },
-    { id: 3, service: 'Body Shaping', specialist: 'Lara Haddad', date: 'Apr 8, 2026', time: '11:00 AM', status: 'confirmed' },
-  ];
+  const sessionBalance = subscriptions
+    .filter((s) => s.status === 'active')
+    .map((s) => ({
+      name: s.package.name,
+      purchased: s.sessionsTotal,
+      completed: s.sessionsUsed,
+      remaining: s.sessionsTotal - s.sessionsUsed,
+    }));
 
-  const sessionBalance = {
-    physio: { purchased: 10, completed: 3, remaining: 7 },
-    aesthetic: { purchased: 8, completed: 4, remaining: 4 },
-  };
-
-  const reminders = [
-    { type: 'appointment', message: 'Physio session tomorrow at 10:00 AM', time: '1 hour ago' },
-    { type: 'exercise', message: 'You have 3 exercises to complete today', time: '3 hours ago' },
-    { type: 'session_balance', message: 'You have 4 body shaping sessions remaining', time: '1 day ago' },
-  ];
+  const reminders = remindersData.slice(0, 3).map((r) => ({
+    type: r.type,
+    message: r.message,
+    time: new Date(r.scheduledAt).toLocaleDateString(),
+  }));
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -71,12 +88,12 @@ export default function DashboardPage() {
               {upcomingAppointments.map((appt) => (
                 <div key={appt.id} className="flex items-center justify-between p-3 bg-muted rounded-lg">
                   <div>
-                    <p className="font-medium text-foreground text-sm">{appt.service}</p>
-                    <p className="text-xs text-muted-foreground">{appt.specialist}</p>
+                    <p className="font-medium text-foreground text-sm">{appt.service.name}</p>
+                    <p className="text-xs text-muted-foreground">{appt.practitioner.firstName} {appt.practitioner.lastName}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm text-foreground">{appt.date}</p>
-                    <p className="text-xs text-muted-foreground">{appt.time}</p>
+                    <p className="text-sm text-foreground">{new Date(appt.date).toLocaleDateString()}</p>
+                    <p className="text-xs text-muted-foreground">{appt.startTime}</p>
                   </div>
                   <Badge variant={appt.status === 'confirmed' ? 'success' : 'primary'}>
                     {appt.status}
@@ -114,32 +131,24 @@ export default function DashboardPage() {
         <Card>
           <h2 className="text-lg font-semibold text-foreground mb-4">Session Balance</h2>
           <div className="space-y-4">
-            <div>
-              <div className="flex justify-between text-sm mb-1">
-                <span className="text-foreground font-medium">Physiotherapy</span>
-                <span className="text-muted-foreground">{sessionBalance.physio.completed}/{sessionBalance.physio.purchased}</span>
+            {sessionBalance.length === 0 && (
+              <p className="text-sm text-muted-foreground">No active subscriptions.</p>
+            )}
+            {sessionBalance.map((sub) => (
+              <div key={sub.name}>
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="text-foreground font-medium">{sub.name}</span>
+                  <span className="text-muted-foreground">{sub.completed}/{sub.purchased}</span>
+                </div>
+                <div className="w-full bg-muted rounded-full h-2">
+                  <div
+                    className="bg-primary rounded-full h-2"
+                    style={{ width: `${sub.purchased > 0 ? (sub.completed / sub.purchased) * 100 : 0}%` }}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">{sub.remaining} sessions remaining</p>
               </div>
-              <div className="w-full bg-muted rounded-full h-2">
-                <div
-                  className="bg-primary rounded-full h-2"
-                  style={{ width: `${(sessionBalance.physio.completed / sessionBalance.physio.purchased) * 100}%` }}
-                />
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">{sessionBalance.physio.remaining} sessions remaining</p>
-            </div>
-            <div>
-              <div className="flex justify-between text-sm mb-1">
-                <span className="text-foreground font-medium">Body Shaping</span>
-                <span className="text-muted-foreground">{sessionBalance.aesthetic.completed}/{sessionBalance.aesthetic.purchased}</span>
-              </div>
-              <div className="w-full bg-muted rounded-full h-2">
-                <div
-                  className="bg-secondary rounded-full h-2"
-                  style={{ width: `${(sessionBalance.aesthetic.completed / sessionBalance.aesthetic.purchased) * 100}%` }}
-                />
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">{sessionBalance.aesthetic.remaining} sessions remaining</p>
-            </div>
+            ))}
           </div>
         </Card>
 

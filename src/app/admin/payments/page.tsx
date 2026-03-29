@@ -3,16 +3,24 @@ import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import { Search, Download, DollarSign, TrendingUp, CreditCard, AlertCircle } from 'lucide-react';
+import { redirect } from 'next/navigation';
+import { getSessionUser, getAllPayments } from '@/lib/data';
 
-export default function AdminPaymentsPage() {
-  const transactions = [
-    { id: 'TXN-001', client: 'Rami Saleh', amount: '$250', type: 'Package Purchase', package: 'Physio Basic', date: 'Mar 25, 2026', method: 'Credit Card', status: 'completed' },
-    { id: 'TXN-002', client: 'Diana Mansour', amount: '$120', type: 'Single Session', package: 'Dietitian', date: 'Mar 24, 2026', method: 'Cash', status: 'completed' },
-    { id: 'TXN-003', client: 'Lea Khoury', amount: '$450', type: 'Package Purchase', package: 'Diet Premium', date: 'Mar 23, 2026', method: 'Bank Transfer', status: 'pending' },
-    { id: 'TXN-004', client: 'Jad Haddad', amount: '$300', type: 'Package Renewal', package: 'LPG Basic', date: 'Mar 22, 2026', method: 'Credit Card', status: 'completed' },
-    { id: 'TXN-005', client: 'Nadia Abboud', amount: '$100', type: 'Single Session', package: 'Gym', date: 'Mar 21, 2026', method: 'Credit Card', status: 'refunded' },
-    { id: 'TXN-006', client: 'Omar Rizk', amount: '$750', type: 'Package Purchase', package: 'Hybrid Total Care', date: 'Mar 20, 2026', method: 'Bank Transfer', status: 'completed' },
-  ];
+export default async function AdminPaymentsPage() {
+  const user = await getSessionUser();
+  if (!user || user.role !== 'admin') redirect('/auth/signin');
+
+  const rawPayments = await getAllPayments();
+  const transactions = rawPayments.map((p) => ({
+    id: p.invoice?.invoiceNumber || p.id.slice(0, 12),
+    client: `${p.client.firstName} ${p.client.lastName}`,
+    amount: `$${p.amount}`,
+    type: p.description,
+    package: '-',
+    date: new Date(p.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+    method: p.method.replace('_', ' '),
+    status: p.status,
+  }));
 
   const statusVariant: Record<string, 'success' | 'warning' | 'danger' | 'default'> = {
     completed: 'success',
@@ -37,20 +45,18 @@ export default function AdminPaymentsPage() {
           <div className="p-4">
             <div className="flex items-center mb-2">
               <DollarSign className="h-4 w-4 text-green-600 mr-2" />
-              <p className="text-sm text-muted-foreground">This Month</p>
+              <p className="text-sm text-muted-foreground">Total Revenue</p>
             </div>
-            <p className="text-2xl font-bold text-foreground">$12,450</p>
-            <p className="text-xs text-green-600">+18% vs last month</p>
+            <p className="text-2xl font-bold text-foreground">${rawPayments.filter((p) => p.status === 'completed').reduce((s, p) => s + p.amount, 0).toLocaleString()}</p>
           </div>
         </Card>
         <Card>
           <div className="p-4">
             <div className="flex items-center mb-2">
               <TrendingUp className="h-4 w-4 text-primary mr-2" />
-              <p className="text-sm text-muted-foreground">Avg. Transaction</p>
+              <p className="text-sm text-muted-foreground">Transactions</p>
             </div>
-            <p className="text-2xl font-bold text-foreground">$287</p>
-            <p className="text-xs text-muted-foreground">48 transactions</p>
+            <p className="text-2xl font-bold text-foreground">{rawPayments.length}</p>
           </div>
         </Card>
         <Card>
@@ -59,18 +65,18 @@ export default function AdminPaymentsPage() {
               <CreditCard className="h-4 w-4 text-blue-600 mr-2" />
               <p className="text-sm text-muted-foreground">Pending</p>
             </div>
-            <p className="text-2xl font-bold text-amber-600">$1,350</p>
-            <p className="text-xs text-muted-foreground">3 transactions</p>
+            <p className="text-2xl font-bold text-amber-600">${rawPayments.filter((p) => p.status === 'pending').reduce((s, p) => s + p.amount, 0).toLocaleString()}</p>
+            <p className="text-xs text-muted-foreground">{rawPayments.filter((p) => p.status === 'pending').length} transactions</p>
           </div>
         </Card>
         <Card>
           <div className="p-4">
             <div className="flex items-center mb-2">
               <AlertCircle className="h-4 w-4 text-red-600 mr-2" />
-              <p className="text-sm text-muted-foreground">Overdue</p>
+              <p className="text-sm text-muted-foreground">Refunded</p>
             </div>
-            <p className="text-2xl font-bold text-red-600">$450</p>
-            <p className="text-xs text-muted-foreground">1 invoice</p>
+            <p className="text-2xl font-bold text-red-600">${rawPayments.filter((p) => p.status === 'refunded').reduce((s, p) => s + p.amount, 0).toLocaleString()}</p>
+            <p className="text-xs text-muted-foreground">{rawPayments.filter((p) => p.status === 'refunded').length} transactions</p>
           </div>
         </Card>
       </div>

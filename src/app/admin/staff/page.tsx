@@ -3,23 +3,31 @@ import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import { Search, Plus, UserCog } from 'lucide-react';
+import { redirect } from 'next/navigation';
+import { getSessionUser, getAdminStaff } from '@/lib/data';
 
-export default function AdminStaffPage() {
-  const staff = [
-    { id: 'S-001', name: 'Dr. Karim Nassar', role: 'Physiotherapist', specialties: ['Sports Rehab', 'Post-Surgery'], email: 'karim@nicolasweb.com', status: 'active', clients: 32 },
-    { id: 'S-002', name: 'Dr. Lina Fadel', role: 'Physiotherapist', specialties: ['Neuro Rehab', 'Geriatric'], email: 'lina@nicolasweb.com', status: 'active', clients: 28 },
-    { id: 'S-003', name: 'Maya Touma', role: 'Dietitian', specialties: ['Weight Management', 'Sports Nutrition'], email: 'maya@nicolasweb.com', status: 'active', clients: 40 },
-    { id: 'S-004', name: 'Nour Sabbagh', role: 'Aesthetician', specialties: ['LPG Endermologie', 'Cavitation'], email: 'nour@nicolasweb.com', status: 'active', clients: 22 },
-    { id: 'S-005', name: 'Tony Makhlouf', role: 'Gym Trainer', specialties: ['Strength Training', 'HIIT'], email: 'tony@nicolasweb.com', status: 'on-leave', clients: 18 },
-    { id: 'S-006', name: 'Sara Hanna', role: 'Electrologist', specialties: ['Thermolysis', 'Blend'], email: 'sara@nicolasweb.com', status: 'active', clients: 15 },
-  ];
+export default async function AdminStaffPage() {
+  const user = await getSessionUser();
+  if (!user || user.role !== 'admin') redirect('/auth/signin');
+
+  const rawStaff = await getAdminStaff();
+  const staff = rawStaff.filter((s) => s.role !== 'admin').map((s) => ({
+    id: s.id.slice(0, 8),
+    name: `${s.firstName} ${s.lastName}`,
+    role: s.role.replace('_', ' '),
+    specialties: s.specialties as string[],
+    email: s.email,
+    status: s.isActive ? 'active' : 'inactive',
+    clients: s._count.practitionerAppointments,
+  }));
 
   const roleColors: Record<string, 'primary' | 'success' | 'warning' | 'danger' | 'default'> = {
-    'Physiotherapist': 'primary',
-    'Dietitian': 'success',
-    'Aesthetician': 'warning',
-    'Gym Trainer': 'danger',
-    'Electrologist': 'default',
+    'therapist': 'primary',
+    'dietitian': 'success',
+    'aesthetic specialist': 'warning',
+    'trainer': 'danger',
+    'electrologist': 'default',
+    'receptionist': 'default',
   };
 
   return (

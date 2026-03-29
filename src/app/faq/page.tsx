@@ -1,11 +1,15 @@
 'use client';
 
-import { useState } from 'react';
-import { Metadata } from 'next';
+import { useState, useEffect } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { FAQ_ITEMS } from '@/lib/constants';
 
-function FAQAccordion({ item }: { item: { question: string; answer: string; category: string } }) {
+interface FAQItemData {
+  question: string;
+  answer: string;
+  category: string;
+}
+
+function FAQAccordion({ item }: { item: FAQItemData }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="border border-border rounded-xl overflow-hidden">
@@ -27,6 +31,15 @@ function FAQAccordion({ item }: { item: { question: string; answer: string; cate
 
 export default function FAQPage() {
   const [activeCategory, setActiveCategory] = useState('All');
+  const [FAQ_ITEMS, setFaqItems] = useState<FAQItemData[]>([]);
+
+  useEffect(() => {
+    fetch('/api/content')
+      .then((r) => r.json())
+      .then((data) => setFaqItems(data.faq || []))
+      .catch(() => {});
+  }, []);
+
   const categories = ['All', ...new Set(FAQ_ITEMS.map((item) => item.category))];
   const filtered = activeCategory === 'All' ? FAQ_ITEMS : FAQ_ITEMS.filter((item) => item.category === activeCategory);
 

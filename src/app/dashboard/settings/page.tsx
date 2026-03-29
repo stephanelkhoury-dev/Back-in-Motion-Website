@@ -1,8 +1,16 @@
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import { redirect } from 'next/navigation';
+import { getSessionUser, getClientProfile } from '@/lib/data';
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
+  const user = await getSessionUser();
+  if (!user) redirect('/auth/signin');
+
+  const profile = await getClientProfile(user.id);
+  if (!profile) redirect('/auth/signin');
+
   return (
     <div className="max-w-2xl mx-auto">
       <div className="mb-6">
@@ -15,12 +23,12 @@ export default function SettingsPage() {
           <h2 className="text-lg font-semibold text-foreground mb-4">Profile Information</h2>
           <form className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <Input id="firstName" label="First Name" defaultValue="John" />
-              <Input id="lastName" label="Last Name" defaultValue="Doe" />
+              <Input id="firstName" label="First Name" defaultValue={profile.firstName} />
+              <Input id="lastName" label="Last Name" defaultValue={profile.lastName} />
             </div>
-            <Input id="email" label="Email" type="email" defaultValue="john@example.com" />
-            <Input id="phone" label="Phone" type="tel" defaultValue="+961 XX XXX XXX" />
-            <Input id="dob" label="Date of Birth" type="date" defaultValue="1990-01-15" />
+            <Input id="email" label="Email" type="email" defaultValue={profile.email} />
+            <Input id="phone" label="Phone" type="tel" defaultValue={profile.phone || ''} />
+            <Input id="dob" label="Date of Birth" type="date" defaultValue={profile.dateOfBirth ? new Date(profile.dateOfBirth).toISOString().split('T')[0] : ''} />
             <Button type="submit">Save Changes</Button>
           </form>
         </Card>

@@ -1,13 +1,31 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Calendar, Clock, User, ArrowRight, ArrowLeft, CheckCircle } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
 import Badge from '@/components/ui/Badge';
-import { SERVICES, TEAM_MEMBERS } from '@/lib/constants';
 import { cn } from '@/lib/utils';
+
+interface ServiceData {
+  id: string;
+  name: string;
+  slug: string;
+  category: string;
+  duration: number;
+  price: number;
+  shortDescription: string | null;
+}
+
+interface PractitionerData {
+  id: string;
+  name: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+  specialties: string[];
+}
 
 type BookingStep = 'service' | 'specialist' | 'datetime' | 'details' | 'confirm';
 
@@ -28,6 +46,18 @@ const TIME_SLOTS = [
 
 export default function BookPage() {
   const [step, setStep] = useState<BookingStep>('service');
+  const [SERVICES, setServices] = useState<ServiceData[]>([]);
+  const [TEAM_MEMBERS, setTeamMembers] = useState<PractitionerData[]>([]);
+
+  useEffect(() => {
+    Promise.all([
+      fetch('/api/services').then((r) => r.json()),
+      fetch('/api/practitioners').then((r) => r.json()),
+    ]).then(([services, practitioners]) => {
+      setServices(services);
+      setTeamMembers(practitioners);
+    });
+  }, []);
   const [selectedService, setSelectedService] = useState('');
   const [selectedSpecialist, setSelectedSpecialist] = useState('');
   const [selectedDate, setSelectedDate] = useState('');
@@ -235,7 +265,7 @@ export default function BookPage() {
                       </div>
                       <div>
                         <h3 className="font-semibold text-foreground">{spec.name}</h3>
-                        <p className="text-sm text-muted-foreground">{spec.title}</p>
+                        <p className="text-sm text-muted-foreground">{spec.role.replace('_', ' ')}</p>
                       </div>
                     </div>
                   </button>

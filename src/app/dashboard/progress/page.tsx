@@ -1,24 +1,33 @@
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
+import { redirect } from 'next/navigation';
+import { getSessionUser, getClientProgress } from '@/lib/data';
 
-export default function ProgressPage() {
+export default async function ProgressPage() {
+  const user = await getSessionUser();
+  if (!user) redirect('/auth/signin');
+
+  const progress = await getClientProgress(user.id);
+  const latestMeasurement = progress.measurements[0];
+  const prevMeasurement = progress.measurements[1];
+
   const metrics = [
-    { label: 'Pain Level', current: 3, previous: 5, unit: '/10', trend: 'down' },
-    { label: 'Mobility Score', current: 78, previous: 65, unit: '%', trend: 'up' },
-    { label: 'Exercise Compliance', current: 85, previous: 72, unit: '%', trend: 'up' },
-    { label: 'Weight', current: 72.5, previous: 74, unit: 'kg', trend: 'down' },
-    { label: 'Body Fat', current: 22, previous: 24, unit: '%', trend: 'down' },
-    { label: 'BMI', current: 23.5, previous: 24.1, unit: '', trend: 'down' },
+    { label: 'Avg Pain Level', current: progress.stats.avgPainLevel, previous: 0, unit: '/10', trend: 'down' as const },
+    { label: 'Total Workouts', current: progress.stats.totalWorkouts, previous: 0, unit: '', trend: 'up' as const },
+    { label: 'Completed Appointments', current: progress.stats.completedAppointments, previous: 0, unit: '', trend: 'up' as const },
+    { label: 'Weight', current: progress.stats.latestWeight ?? 0, previous: prevMeasurement?.weight ?? 0, unit: 'kg', trend: ((progress.stats.latestWeight ?? 0) <= (prevMeasurement?.weight ?? 0) ? 'down' : 'up') as 'up' | 'down' },
+    { label: 'Body Fat', current: latestMeasurement?.bodyFat ?? 0, previous: prevMeasurement?.bodyFat ?? 0, unit: '%', trend: ((latestMeasurement?.bodyFat ?? 0) <= (prevMeasurement?.bodyFat ?? 0) ? 'down' : 'up') as 'up' | 'down' },
+    { label: 'BMI', current: progress.stats.latestBmi ?? 0, previous: prevMeasurement?.bmi ?? 0, unit: '', trend: ((progress.stats.latestBmi ?? 0) <= (prevMeasurement?.bmi ?? 0) ? 'down' : 'up') as 'up' | 'down' },
   ];
 
-  const bodyMeasurements = [
-    { area: 'Waist', current: 82, previous: 86, unit: 'cm' },
-    { area: 'Hips', current: 96, previous: 98, unit: 'cm' },
-    { area: 'Chest', current: 95, previous: 95, unit: 'cm' },
-    { area: 'Right Arm', current: 32, previous: 31, unit: 'cm' },
-    { area: 'Right Thigh', current: 55, previous: 57, unit: 'cm' },
-  ];
+  const bodyMeasurements = latestMeasurement ? [
+    { area: 'Waist', current: latestMeasurement.waist ?? 0, previous: prevMeasurement?.waist ?? 0, unit: 'cm' },
+    { area: 'Hips', current: latestMeasurement.hips ?? 0, previous: prevMeasurement?.hips ?? 0, unit: 'cm' },
+    { area: 'Chest', current: latestMeasurement.chest ?? 0, previous: prevMeasurement?.chest ?? 0, unit: 'cm' },
+    { area: 'Arms', current: latestMeasurement.arms ?? 0, previous: prevMeasurement?.arms ?? 0, unit: 'cm' },
+    { area: 'Thighs', current: latestMeasurement.thighs ?? 0, previous: prevMeasurement?.thighs ?? 0, unit: 'cm' },
+  ] : [];
 
   const TrendIcon = ({ trend }: { trend: string }) => {
     if (trend === 'up') return <TrendingUp className="h-4 w-4 text-success" />;

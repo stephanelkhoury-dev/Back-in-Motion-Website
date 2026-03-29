@@ -1,37 +1,34 @@
 import { Calendar, Users, DollarSign, TrendingUp, Activity, Package, Bot, AlertTriangle } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
+import { redirect } from 'next/navigation';
+import { getSessionUser, getAdminAnalytics, getAllAppointments } from '@/lib/data';
 
-export default function AdminDashboardPage() {
+export default async function AdminDashboardPage() {
+  const user = await getSessionUser();
+  if (!user || (user.role !== 'admin' && user.role !== 'receptionist')) redirect('/auth/signin');
+
+  const analytics = await getAdminAnalytics();
+  const allAppointments = await getAllAppointments();
+  const o = analytics.overview;
+
+  const todayStr = new Date().toISOString().split('T')[0];
+  const todayAppointments = allAppointments
+    .filter((a) => new Date(a.date).toISOString().split('T')[0] === todayStr)
+    .map((a) => ({
+      time: a.startTime,
+      client: `${a.client.firstName} ${a.client.lastName.charAt(0)}.`,
+      service: a.service.name,
+      specialist: `${a.practitioner.firstName} ${a.practitioner.lastName.charAt(0)}.`,
+      status: a.status,
+      room: a.roomOrEquipment || '-',
+    }));
+
   const stats = [
-    { label: "Today's Appointments", value: '12', icon: Calendar, color: 'text-primary', bg: 'bg-primary/10', change: '+3 from yesterday' },
-    { label: 'Active Clients', value: '284', icon: Users, color: 'text-success', bg: 'bg-success/10', change: '+8 this month' },
-    { label: "Monthly Revenue", value: '$14,250', icon: DollarSign, color: 'text-accent', bg: 'bg-accent/10', change: '+12% vs last month' },
-    { label: 'E-Coach Subscribers', value: '47', icon: Bot, color: 'text-secondary', bg: 'bg-secondary/10', change: '+5 this week' },
-  ];
-
-  const todayAppointments = [
-    { time: '08:00', client: 'Rami S.', service: 'Physio', specialist: 'Dr. Nicolas', status: 'confirmed', room: 'A' },
-    { time: '08:30', client: 'Diana M.', service: 'Dietitian', specialist: 'Sarah M.', status: 'confirmed', room: 'Online' },
-    { time: '09:00', client: 'Lea K.', service: 'LPG', specialist: 'Lara H.', status: 'in_progress', room: 'C' },
-    { time: '09:30', client: 'Jad H.', service: 'Gym PT', specialist: 'Ahmad R.', status: 'scheduled', room: 'Gym' },
-    { time: '10:00', client: 'Nadia A.', service: 'Electrolysis', specialist: 'Nour K.', status: 'confirmed', room: 'D' },
-    { time: '10:30', client: 'Karim B.', service: 'Physio', specialist: 'Maya A.', status: 'scheduled', room: 'B' },
-  ];
-
-  const revenueByService = [
-    { service: 'Physiotherapy', revenue: 5200, percentage: 37 },
-    { service: 'Body Shaping', revenue: 3840, percentage: 27 },
-    { service: 'Dietitian', revenue: 2160, percentage: 15 },
-    { service: 'Gym', revenue: 1600, percentage: 11 },
-    { service: 'Electrolysis', revenue: 1000, percentage: 7 },
-    { service: 'E-Coach', revenue: 450, percentage: 3 },
-  ];
-
-  const alerts = [
-    { type: 'warning', message: '3 clients have packages expiring this week' },
-    { type: 'info', message: '2 no-shows today — follow up recommended' },
-    { type: 'success', message: 'E-Coach adoption up 15% this month' },
+    { label: "Today's Appointments", value: String(todayAppointments.length), icon: Calendar, color: 'text-primary', bg: 'bg-primary/10', change: `${o.thisMonthAppointments} this month` },
+    { label: 'Active Clients', value: String(o.activeClients), icon: Users, color: 'text-success', bg: 'bg-success/10', change: `${o.totalClients} total` },
+    { label: "Total Revenue", value: `$${o.totalRevenue.toLocaleString()}`, icon: DollarSign, color: 'text-accent', bg: 'bg-accent/10', change: `$${o.thisMonthRevenue} this month` },
+    { label: 'Active Subscriptions', value: String(o.activeSubscriptions), icon: Bot, color: 'text-secondary', bg: 'bg-secondary/10', change: `${o.completedAppointments} completed appts` },
   ];
 
   const statusColors: Record<string, 'success' | 'primary' | 'warning' | 'default'> = {
@@ -109,37 +106,34 @@ export default function AdminDashboardPage() {
         {/* Alerts */}
         <div>
           <Card>
-            <h2 className="text-lg font-semibold text-foreground mb-4">Alerts & Notifications</h2>
+            <h2 className="text-lg font-semibold text-foreground mb-4">Quick Stats</h2>
             <div className="space-y-3">
-              {alerts.map((alert, i) => (
-                <div key={i} className={`p-3 rounded-lg ${
-                  alert.type === 'warning' ? 'bg-warning/5 border border-warning/20' :
-                  alert.type === 'success' ? 'bg-success/5 border border-success/20' :
-                  'bg-primary/5 border border-primary/20'
-                }`}>
-                  <p className="text-sm text-foreground">{alert.message}</p>
-                </div>
-              ))}
+              <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
+                <p className="text-sm text-foreground">{o.totalAppointments} total appointments</p>
+              </div>
+              <div className="p-3 rounded-lg bg-success/5 border border-success/20">
+                <p className="text-sm text-foreground">{o.completedAppointments} completed appointments</p>
+              </div>
+              <div className="p-3 rounded-lg bg-warning/5 border border-warning/20">
+                <p className="text-sm text-foreground">{o.activeSubscriptions} active subscriptions</p>
+              </div>
             </div>
           </Card>
         </div>
       </div>
 
-      {/* Revenue by Service */}
+      {/* Summary */}
       <Card>
-        <h2 className="text-lg font-semibold text-foreground mb-4">Revenue by Service (This Month)</h2>
-        <div className="space-y-3">
-          {revenueByService.map((item) => (
-            <div key={item.service}>
-              <div className="flex justify-between text-sm mb-1">
-                <span className="text-foreground font-medium">{item.service}</span>
-                <span className="text-muted-foreground">${item.revenue.toLocaleString()} ({item.percentage}%)</span>
-              </div>
-              <div className="w-full bg-muted rounded-full h-2">
-                <div className="bg-primary rounded-full h-2 transition-all" style={{ width: `${item.percentage}%` }} />
-              </div>
-            </div>
-          ))}
+        <h2 className="text-lg font-semibold text-foreground mb-4">Revenue Summary</h2>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="p-4 bg-muted rounded-xl">
+            <p className="text-sm text-muted-foreground">Total Revenue</p>
+            <p className="text-2xl font-bold text-foreground">${o.totalRevenue.toLocaleString()}</p>
+          </div>
+          <div className="p-4 bg-muted rounded-xl">
+            <p className="text-sm text-muted-foreground">This Month</p>
+            <p className="text-2xl font-bold text-foreground">${o.thisMonthRevenue.toLocaleString()}</p>
+          </div>
         </div>
       </Card>
     </div>

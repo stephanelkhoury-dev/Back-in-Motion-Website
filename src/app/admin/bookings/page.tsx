@@ -2,16 +2,24 @@ import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import { Plus } from 'lucide-react';
+import { redirect } from 'next/navigation';
+import { getSessionUser, getAllAppointments } from '@/lib/data';
 
-export default function AdminBookingsPage() {
-  const bookings = [
-    { id: 'BK-001', client: 'Rami S.', service: 'Physiotherapy', specialist: 'Dr. Nicolas Khoury', date: 'Apr 2, 2026', time: '10:00', status: 'confirmed', type: 'package' },
-    { id: 'BK-002', client: 'Diana M.', service: 'Dietitian', specialist: 'Sarah Mansour', date: 'Apr 2, 2026', time: '14:00', status: 'confirmed', type: 'single' },
-    { id: 'BK-003', client: 'Lea K.', service: 'Body Shaping', specialist: 'Lara Haddad', date: 'Apr 3, 2026', time: '11:00', status: 'scheduled', type: 'package' },
-    { id: 'BK-004', client: 'Jad H.', service: 'Gym PT', specialist: 'Ahmad Rizk', date: 'Apr 3, 2026', time: '16:00', status: 'scheduled', type: 'single' },
-    { id: 'BK-005', client: 'Nadia A.', service: 'Electrolysis', specialist: 'Nour Khalil', date: 'Apr 4, 2026', time: '15:00', status: 'waitlist', type: 'package' },
-    { id: 'BK-006', client: 'Karim B.', service: 'Physiotherapy', specialist: 'Maya Abboud', date: 'Apr 4, 2026', time: '09:00', status: 'confirmed', type: 'package' },
-  ];
+export default async function AdminBookingsPage() {
+  const user = await getSessionUser();
+  if (!user || (user.role !== 'admin' && user.role !== 'receptionist')) redirect('/auth/signin');
+
+  const rawAppointments = await getAllAppointments();
+  const bookings = rawAppointments.map((a) => ({
+    id: a.id.slice(0, 8),
+    client: `${a.client.firstName} ${a.client.lastName.charAt(0)}.`,
+    service: a.service.name,
+    specialist: `${a.practitioner.firstName} ${a.practitioner.lastName}`,
+    date: new Date(a.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+    time: a.startTime,
+    status: a.status,
+    type: a.bookingType,
+  }));
 
   const statusColors: Record<string, 'success' | 'primary' | 'warning' | 'danger' | 'default'> = {
     confirmed: 'success',

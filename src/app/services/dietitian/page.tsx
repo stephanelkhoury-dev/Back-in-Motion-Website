@@ -4,14 +4,16 @@ import { CheckCircle, ArrowRight, Apple, Target, Calendar, TrendingUp, Camera, D
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
-import { PACKAGES } from '@/lib/constants';
+import { getPackages } from '@/lib/data';
 
 export const metadata: Metadata = {
   title: 'Nutrition & Dietetics | Nicolas Web',
   description: 'Personalized nutrition assessments, custom meal plans, and ongoing dietitian support for your health goals.',
 };
 
-export default function DietitianPage() {
+export default async function DietitianPage() {
+  const PACKAGES = await getPackages();
+
   const features = [
     { icon: Apple, title: 'Nutrition Assessment', description: 'Comprehensive intake evaluation including medical history, lifestyle, and eating habits.' },
     { icon: Target, title: 'Body Goals Selection', description: 'Weight loss, muscle gain, medical diet, sports nutrition — we tailor to your objectives.' },
@@ -100,7 +102,7 @@ export default function DietitianPage() {
                   <span className="text-muted-foreground text-sm">/month</span>
                 </div>
                 <ul className="space-y-2 mb-6">
-                  {pkg.features.map((f) => (
+                  {(pkg.features as string[]).map((f) => (
                     <li key={f} className="flex items-center text-sm text-muted-foreground">
                       <CheckCircle className="h-4 w-4 text-success mr-2 flex-shrink-0" />
                       {f}

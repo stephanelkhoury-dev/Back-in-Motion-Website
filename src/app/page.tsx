@@ -3,7 +3,7 @@ import { ArrowRight, Activity, Utensils, Sparkles, Zap, Dumbbell, Bot, Star, Che
 import Button from '@/components/ui/Button';
 import Card, { CardContent } from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
-import { SERVICES, TESTIMONIALS, PACKAGES } from '@/lib/constants';
+import { getServices, getPackages, getTestimonials } from '@/lib/data';
 
 const SERVICE_ICONS: Record<string, React.ComponentType<React.SVGProps<SVGSVGElement>>> = {
   physio: Activity,
@@ -53,7 +53,7 @@ function HeroSection() {
   );
 }
 
-function ServicesSection() {
+function ServicesSection({ services }: { services: Awaited<ReturnType<typeof getServices>> }) {
   return (
     <section className="py-20 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -64,7 +64,7 @@ function ServicesSection() {
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {SERVICES.map((service) => {
+          {services.map((service) => {
             const Icon = SERVICE_ICONS[service.category] || Activity;
             return (
               <Link key={service.id} href={`/services/${service.slug}`}>
@@ -147,7 +147,7 @@ function WhyChooseUsSection() {
   );
 }
 
-function TestimonialsSection() {
+function TestimonialsSection({ testimonials }: { testimonials: Awaited<ReturnType<typeof getTestimonials>> }) {
   return (
     <section className="py-20 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -155,14 +155,14 @@ function TestimonialsSection() {
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">What Our Clients Say</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {TESTIMONIALS.slice(0, 3).map((t) => (
+          {testimonials.slice(0, 3).map((t) => (
             <Card key={t.id} className="h-full">
               <div className="flex mb-3">
                 {[...Array(t.rating)].map((_, i) => (
                   <Star key={i} className="h-4 w-4 text-accent fill-accent" />
                 ))}
               </div>
-              <p className="text-muted-foreground text-sm italic mb-4">&ldquo;{t.content}&rdquo;</p>
+              <p className="text-muted-foreground text-sm italic mb-4">&ldquo;{t.comment}&rdquo;</p>
               <div className="flex items-center mt-auto">
                 <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-sm mr-3">
                   {t.clientName.charAt(0)}
@@ -180,8 +180,8 @@ function TestimonialsSection() {
   );
 }
 
-function PackagesPreview() {
-  const featured = PACKAGES.filter((p) => p.isPopular).slice(0, 3);
+function PackagesPreview({ packages }: { packages: Awaited<ReturnType<typeof getPackages>> }) {
+  const featured = packages.filter((p) => p.isPopular).slice(0, 3);
 
   return (
     <section className="py-20 bg-muted">
@@ -203,7 +203,7 @@ function PackagesPreview() {
                 {pkg.type === 'monthly' && <span className="text-muted-foreground text-sm">/month</span>}
               </div>
               <ul className="space-y-2 mb-6">
-                {pkg.features.map((f) => (
+                {(pkg.features as string[]).map((f) => (
                   <li key={f} className="flex items-center text-sm text-muted-foreground">
                     <CheckCircle className="h-4 w-4 text-success mr-2 flex-shrink-0" />
                     {f}
@@ -253,14 +253,20 @@ function CTASection() {
   );
 }
 
-export default function Home() {
+export default async function Home() {
+  const [services, packages, testimonials] = await Promise.all([
+    getServices(),
+    getPackages(),
+    getTestimonials(),
+  ]);
+
   return (
     <>
       <HeroSection />
-      <ServicesSection />
+      <ServicesSection services={services} />
       <WhyChooseUsSection />
-      <PackagesPreview />
-      <TestimonialsSection />
+      <PackagesPreview packages={packages} />
+      <TestimonialsSection testimonials={testimonials} />
       <CTASection />
     </>
   );

@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { CheckCircle, Award, Users, Heart, Target, Clock } from 'lucide-react';
-import { COMPANY, TEAM_MEMBERS } from '@/lib/constants';
+import { COMPANY } from '@/lib/constants';
 import Link from 'next/link';
 import Button from '@/components/ui/Button';
 

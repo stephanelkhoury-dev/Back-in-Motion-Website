@@ -2,9 +2,14 @@ import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import { Plus, Edit } from 'lucide-react';
-import { PACKAGES } from '@/lib/constants';
+import { redirect } from 'next/navigation';
+import { getSessionUser, getPackages } from '@/lib/data';
 
-export default function AdminPackagesPage() {
+export default async function AdminPackagesPage() {
+  const user = await getSessionUser();
+  if (!user || user.role !== 'admin') redirect('/auth/signin');
+
+  const PACKAGES = await getPackages();
   const packageSales = [
     { pkgId: 'pkg-physio-basic', sold: 34, active: 18, revenue: '$8,500' },
     { pkgId: 'pkg-physio-premium', sold: 22, active: 15, revenue: '$11,000' },

@@ -1,0 +1,434 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Users & Auth ───────────────────────────────────────────
+
+model User {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  passwordHash   String
+  firstName      String
+  lastName       String
+  phone          String?
+  role           String    @default("client") // client, therapist, dietitian, trainer, aesthetic_specialist, electrologist, receptionist, admin
+  avatarUrl      String?
+  isActive       Boolean   @default(true)
+  emailVerified  DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // Client-specific
+  dateOfBirth    DateTime?
+  gender         String?
+  emergencyContact String?
+  medicalNotes   String?
+
+  // Staff-specific
+  specialties    String? // JSON array
+  bio            String?
+  languages      String? // JSON array
+
+  // Relations
+  clientAppointments      Appointment[]   @relation("ClientAppointments")
+  practitionerAppointments Appointment[]  @relation("PractitionerAppointments")
+  subscriptions           Subscription[]
+  exerciseAssignments     ExerciseAssignment[]
+  workoutLogs             WorkoutLog[]
+  mealPlans               MealPlan[]      @relation("ClientMealPlans")
+  dietitianMealPlans      MealPlan[]      @relation("DietitianMealPlans")
+  bodyMeasurements        BodyMeasurement[]
+  ecoachConversations     ECoachConversation[]
+  payments                Payment[]
+  reminders               Reminder[]
+  treatmentNotes          TreatmentNote[] @relation("ClientNotes")
+  practitionerNotes       TreatmentNote[] @relation("PractitionerNotes")
+  sessions                Session[]
+
+  @@map("users")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+// ─── Services ───────────────────────────────────────────────
+
+model Service {
+  id               String   @id @default(cuid())
+  name             String
+  slug             String   @unique
+  category         String   // physio, dietitian, aesthetic, electrolysis, gym
+  description      String
+  shortDescription String
+  duration         Int      // minutes
+  price            Float
+  imageUrl         String?
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  appointments Appointment[]
+  packages     PackageService[]
+
+  @@map("services")
+}
+
+// ─── Packages & Subscriptions ───────────────────────────────
+
+model Package {
+  id              String   @id @default(cuid())
+  name            String
+  description     String
+  category        String   // physio, dietitian, aesthetic, electrolysis, gym, hybrid
+  type            String   // single, bundle, monthly, hybrid
+  totalSessions   Int
+  price           Float
+  validityDays    Int
+  includesECoach  Boolean  @default(false)
+  features        String   // JSON array
+  isPopular       Boolean  @default(false)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  services      PackageService[]
+  subscriptions Subscription[]
+
+  @@map("packages")
+}
+
+model PackageService {
+  id        String  @id @default(cuid())
+  packageId String
+  serviceId String
+  package   Package @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  service   Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@unique([packageId, serviceId])
+  @@map("package_services")
+}
+
+model Subscription {
+  id               String   @id @default(cuid())
+  clientId         String
+  packageId        String
+  status           String   @default("active") // active, paused, expired, cancelled
+  sessionsUsed     Int      @default(0)
+  sessionsTotal    Int
+  startDate        DateTime @default(now())
+  endDate          DateTime
+  autoRenew        Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  client  User    @relation(fields: [clientId], references: [id])
+  package Package @relation(fields: [packageId], references: [id])
+
+  @@map("subscriptions")
+}
+
+// ─── Appointments ───────────────────────────────────────────
+
+model Appointment {
+  id              String   @id @default(cuid())
+  clientId        String
+  practitionerId  String
+  serviceId       String
+  status          String   @default("scheduled") // scheduled, confirmed, in_progress, completed, cancelled, no_show
+  date            DateTime
+  startTime       String   // HH:MM
+  endTime         String   // HH:MM
+  bookingType     String   @default("single") // single, package
+  subscriptionId  String?
+  notes           String?
+  roomOrEquipment String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  client       User    @relation("ClientAppointments", fields: [clientId], references: [id])
+  practitioner User    @relation("PractitionerAppointments", fields: [practitionerId], references: [id])
+  service      Service @relation(fields: [serviceId], references: [id])
+
+  treatmentNote TreatmentNote?
+
+  @@map("appointments")
+}
+
+// ─── Exercises ──────────────────────────────────────────────
+
+model Exercise {
+  id           String  @id @default(cuid())
+  name         String
+  description  String
+  category     String  // strength, flexibility, balance, cardio, rehab
+  muscleGroup  String  // upper_body, lower_body, core, full_body, neck_shoulder, back
+  difficulty   String  // beginner, intermediate, advanced
+  instructions String  // JSON array of steps
+  precautions  String? // JSON array
+  videoUrl     String?
+  imageUrl     String?
+  isActive     Boolean @default(true)
+
+  assignments ExerciseAssignment[]
+
+  @@map("exercises")
+}
+
+model ExerciseAssignment {
+  id              String   @id @default(cuid())
+  clientId        String
+  exerciseId      String
+  assignedBy      String?
+  sets            Int
+  reps            Int
+  holdSeconds     Int?
+  frequency       String   // daily, 3x_week, 2x_week, weekly
+  painLimitNote   String?
+  startDate       DateTime @default(now())
+  endDate         DateTime?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+
+  client   User     @relation(fields: [clientId], references: [id])
+  exercise Exercise @relation(fields: [exerciseId], references: [id])
+  logs     WorkoutLog[]
+
+  @@map("exercise_assignments")
+}
+
+model WorkoutLog {
+  id             String   @id @default(cuid())
+  assignmentId   String
+  clientId       String
+  setsCompleted  Int
+  repsCompleted  Int
+  painLevel      Int?     // 0-10
+  difficulty     String?  // too_easy, just_right, too_hard
+  notes          String?
+  completedAt    DateTime @default(now())
+
+  assignment ExerciseAssignment @relation(fields: [assignmentId], references: [id])
+  client     User               @relation(fields: [clientId], references: [id])
+
+  @@map("workout_logs")
+}
+
+// ─── Nutrition ──────────────────────────────────────────────
+
+model MealPlan {
+  id           String   @id @default(cuid())
+  clientId     String
+  dietitianId  String
+  name         String
+  description  String?
+  startDate    DateTime
+  endDate      DateTime
+  meals        String   // JSON - array of meal objects with name, items, macros
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  client    User @relation("ClientMealPlans", fields: [clientId], references: [id])
+  dietitian User @relation("DietitianMealPlans", fields: [dietitianId], references: [id])
+
+  @@map("meal_plans")
+}
+
+model BodyMeasurement {
+  id          String   @id @default(cuid())
+  clientId    String
+  weight      Float?
+  height      Float?
+  bmi         Float?
+  bodyFat     Float?
+  chest       Float?
+  waist       Float?
+  hips        Float?
+  arms        Float?
+  thighs      Float?
+  measuredAt  DateTime @default(now())
+
+  client User @relation(fields: [clientId], references: [id])
+
+  @@map("body_measurements")
+}
+
+// ─── E-Coach ────────────────────────────────────────────────
+
+model ECoachConversation {
+  id        String   @id @default(cuid())
+  clientId  String
+  title     String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  client   User            @relation(fields: [clientId], references: [id])
+  messages ECoachMessage[]
+
+  @@map("ecoach_conversations")
+}
+
+model ECoachMessage {
+  id             String   @id @default(cuid())
+  conversationId String
+  role           String   // user, assistant, system
+  content        String
+  metadata       String?  // JSON - pain reports, exercise refs, etc.
+  createdAt      DateTime @default(now())
+
+  conversation ECoachConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@map("ecoach_messages")
+}
+
+// ─── Payments ───────────────────────────────────────────────
+
+model Payment {
+  id            String   @id @default(cuid())
+  clientId      String
+  amount        Float
+  currency      String   @default("USD")
+  method        String   // credit_card, cash, bank_transfer
+  status        String   @default("pending") // pending, completed, failed, refunded
+  description   String?
+  transactionRef String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  client  User      @relation(fields: [clientId], references: [id])
+  invoice Invoice?
+
+  @@map("payments")
+}
+
+model Invoice {
+  id           String   @id @default(cuid())
+  paymentId    String   @unique
+  invoiceNumber String  @unique
+  items        String   // JSON array of line items
+  subtotal     Float
+  tax          Float    @default(0)
+  total        Float
+  issuedAt     DateTime @default(now())
+
+  payment Payment @relation(fields: [paymentId], references: [id])
+
+  @@map("invoices")
+}
+
+// ─── Reminders ──────────────────────────────────────────────
+
+model Reminder {
+  id          String   @id @default(cuid())
+  userId      String
+  type        String   // appointment, exercise, medication, follow_up, package_expiry, payment
+  channel     String   // push, sms, whatsapp, email
+  title       String
+  message     String
+  scheduledAt DateTime
+  sentAt      DateTime?
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("reminders")
+}
+
+// ─── Clinical Notes ─────────────────────────────────────────
+
+model TreatmentNote {
+  id             String   @id @default(cuid())
+  appointmentId  String   @unique
+  clientId       String
+  practitionerId String
+  subjective     String?  // patient's complaint
+  objective      String?  // clinical findings
+  assessment     String?  // diagnosis/assessment
+  plan           String?  // treatment plan
+  painBefore     Int?     // 0-10
+  painAfter      Int?     // 0-10
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  appointment  Appointment @relation(fields: [appointmentId], references: [id])
+  client       User        @relation("ClientNotes", fields: [clientId], references: [id])
+  practitioner User        @relation("PractitionerNotes", fields: [practitionerId], references: [id])
+
+  @@map("treatment_notes")
+}
+
+// ─── Content ────────────────────────────────────────────────
+
+model BlogPost {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  excerpt     String
+  content     String
+  author      String
+  category    String
+  tags        String   // JSON array
+  imageUrl    String?
+  isPublished Boolean  @default(true)
+  publishedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("blog_posts")
+}
+
+model FAQItem {
+  id        String  @id @default(cuid())
+  question  String
+  answer    String
+  category  String
+  sortOrder Int     @default(0)
+  isActive  Boolean @default(true)
+
+  @@map("faq_items")
+}
+
+model Testimonial {
+  id        String  @id @default(cuid())
+  clientName String
+  service    String
+  rating     Int
+  comment    String
+  isActive   Boolean @default(true)
+  createdAt  DateTime @default(now())
+
+  @@map("testimonials")
+}
+
+// ─── Promotions ─────────────────────────────────────────────
+
+model Promotion {
+  id           String   @id @default(cuid())
+  name         String
+  code         String   @unique
+  discountType String   // percentage, fixed
+  discountValue Float
+  applicableTo String   // JSON - service/package IDs or "all"
+  startDate    DateTime
+  endDate      DateTime
+  maxUses      Int
+  usageCount   Int      @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  @@map("promotions")
+}

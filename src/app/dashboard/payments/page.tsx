@@ -1,18 +1,30 @@
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
+import { redirect } from 'next/navigation';
+import { getSessionUser, getClientPayments, getClientSubscriptions } from '@/lib/data';
 
-export default function PaymentsPage() {
-  const payments = [
-    { id: 'INV-001', date: 'Mar 10, 2026', description: 'Physio 10 Sessions Package', amount: 650, status: 'paid', method: 'Credit Card' },
-    { id: 'INV-002', date: 'Mar 12, 2026', description: 'Body Shaping 8 Sessions', amount: 640, status: 'paid', method: 'Bank Transfer' },
-    { id: 'INV-003', date: 'Mar 15, 2026', description: 'E-Coach Monthly Subscription', amount: 29, status: 'paid', method: 'Credit Card' },
-    { id: 'INV-004', date: 'Apr 1, 2026', description: 'E-Coach Monthly Renewal', amount: 29, status: 'pending', method: 'Auto-renew' },
-  ];
+export default async function PaymentsPage() {
+  const user = await getSessionUser();
+  if (!user) redirect('/auth/signin');
+
+  const [rawPayments, subscriptions] = await Promise.all([
+    getClientPayments(user.id),
+    getClientSubscriptions(user.id),
+  ]);
+
+  const payments = rawPayments.map((p) => ({
+    id: p.invoice?.invoiceNumber || p.id.slice(0, 12),
+    date: new Date(p.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+    description: p.description,
+    amount: p.amount,
+    status: p.status === 'completed' ? 'paid' : p.status,
+    method: p.method.replace('_', ' '),
+  }));
 
   const balance = {
-    totalSpent: 1348,
-    pendingPayments: 29,
-    activeSubscriptions: 1,
+    totalSpent: rawPayments.filter((p) => p.status === 'completed').reduce((s, p) => s + p.amount, 0),
+    pendingPayments: rawPayments.filter((p) => p.status === 'pending').reduce((s, p) => s + p.amount, 0),
+    activeSubscriptions: subscriptions.filter((s) => s.status === 'active').length,
   };
 
   return (

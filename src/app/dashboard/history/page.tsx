@@ -1,16 +1,23 @@
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
+import { redirect } from 'next/navigation';
+import { getSessionUser, getClientAppointments } from '@/lib/data';
 
-export default function HistoryPage() {
-  const treatmentHistory = [
-    { date: 'Mar 25, 2026', service: 'Physiotherapy', specialist: 'Dr. Nicolas Khoury', notes: 'Knee rehab session 3. ROM improved to 120 degrees. Progressing well.', painBefore: 5, painAfter: 3 },
-    { date: 'Mar 22, 2026', service: 'Dietitian', specialist: 'Sarah Mansour', notes: 'Follow-up consultation. Weight down 1.5kg. Adjusted meal plan for more protein.', painBefore: null, painAfter: null },
-    { date: 'Mar 20, 2026', service: 'Electrolysis', specialist: 'Nour Khalil', notes: 'Session 3 of 6 for underarm area. Good reduction visible.', painBefore: null, painAfter: null },
-    { date: 'Mar 18, 2026', service: 'Body Shaping (LPG)', specialist: 'Lara Haddad', notes: 'Session 4 of 8. Abdomen and thigh treatment. Measurements updated.', painBefore: null, painAfter: null },
-    { date: 'Mar 15, 2026', service: 'Physiotherapy', specialist: 'Dr. Nicolas Khoury', notes: 'Knee rehab session 2. Started resistance exercises. Pain decreasing.', painBefore: 6, painAfter: 4 },
-    { date: 'Mar 12, 2026', service: 'Gym (PT Session)', specialist: 'Ahmad Rizk', notes: 'Functional fitness assessment. Designed initial program focusing on lower body.', painBefore: null, painAfter: null },
-    { date: 'Mar 10, 2026', service: 'Physiotherapy', specialist: 'Dr. Nicolas Khoury', notes: 'Initial assessment. Post-ACL reconstruction. Treatment plan created.', painBefore: 7, painAfter: 5 },
-  ];
+export default async function HistoryPage() {
+  const user = await getSessionUser();
+  if (!user) redirect('/auth/signin');
+
+  const rawAppointments = await getClientAppointments(user.id);
+  const completedAppointments = rawAppointments.filter((a) => a.status === 'completed');
+
+  const treatmentHistory = completedAppointments.map((a) => ({
+    date: new Date(a.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+    service: a.service.name,
+    specialist: `${a.practitioner.firstName} ${a.practitioner.lastName}`,
+    notes: a.notes || 'No notes recorded.',
+    painBefore: null as number | null,
+    painAfter: null as number | null,
+  }));
 
   return (
     <div className="max-w-5xl mx-auto">

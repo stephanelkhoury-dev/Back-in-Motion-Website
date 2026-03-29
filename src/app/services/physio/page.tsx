@@ -4,14 +4,27 @@ import { CheckCircle, ArrowRight, Upload, ClipboardList, Calendar, TrendingUp, D
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
-import { PHYSIO_SPECIALTIES, PACKAGES } from '@/lib/constants';
+import { getPackages } from '@/lib/data';
 
 export const metadata: Metadata = {
   title: 'Physiotherapy & Rehabilitation | Nicolas Web',
   description: 'Comprehensive rehabilitation: sports, orthopedic, neurological, pediatric, geriatric, respiratory, and post-pregnancy rehab.',
 };
 
-export default function PhysioPage() {
+export default async function PhysioPage() {
+  const PACKAGES = await getPackages();
+
+  const PHYSIO_SPECIALTIES = [
+    { id: 'sports_rehab', name: 'Sports Rehabilitation', icon: '⚽', description: 'Recovery and performance programs for athletes and sports injuries.' },
+    { id: 'orthopedic_rehab', name: 'Orthopedic Rehabilitation', icon: '🦴', description: 'Post-surgery and musculoskeletal condition rehabilitation.' },
+    { id: 'rheumatology_rehab', name: 'Rheumatology Rehabilitation', icon: '🤲', description: 'Management of arthritis, joint, and autoimmune conditions.' },
+    { id: 'neurological_rehab', name: 'Neurological Rehabilitation', icon: '🧠', description: 'Recovery programs for stroke, spinal cord, and neurological conditions.' },
+    { id: 'pediatric_rehab', name: 'Pediatric Rehabilitation', icon: '👶', description: 'Specialized therapy for children and developmental conditions.' },
+    { id: 'geriatric_rehab', name: 'Geriatric Rehabilitation', icon: '🧓', description: 'Age-related mobility and strength improvement programs.' },
+    { id: 'respiratory_rehab', name: 'Respiratory Rehabilitation', icon: '🫁', description: 'Breathing exercise programs and lung function improvement.' },
+    { id: 'post_pregnancy_rehab', name: 'Post-Pregnancy Rehabilitation', icon: '🤱', description: 'Recovery programs for new mothers, including pelvic floor therapy.' },
+  ];
+
   const features = [
     { icon: ClipboardList, title: 'Injury / Condition Selection', description: 'Identify your condition and match with the right specialist and treatment path.' },
     { icon: FileText, title: 'Treatment Plan Creation', description: 'Personalized rehab plans with clear goals, timelines, and milestones.' },
@@ -99,7 +112,7 @@ export default function PhysioPage() {
                   {pkg.includesECoach && <Badge variant="success" className="ml-2">+ E-Coach</Badge>}
                 </div>
                 <ul className="space-y-2 mb-6">
-                  {pkg.features.map((f) => (
+                  {(pkg.features as string[]).map((f) => (
                     <li key={f} className="flex items-center text-sm text-muted-foreground">
                       <CheckCircle className="h-4 w-4 text-success mr-2 flex-shrink-0" />
                       {f}

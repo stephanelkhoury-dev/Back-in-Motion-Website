@@ -4,14 +4,16 @@ import { CheckCircle, ArrowRight, Zap, Shield, Clock, Camera, Bell, FileText } f
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
-import { PACKAGES } from '@/lib/constants';
+import { getPackages } from '@/lib/data';
 
 export const metadata: Metadata = {
   title: 'Electrolysis Hair Removal | Nicolas Web',
   description: 'Permanent electrolysis hair removal safe for all skin and hair types with personalized treatment protocols.',
 };
 
-export default function ElectrolysisPage() {
+export default async function ElectrolysisPage() {
+  const PACKAGES = await getPackages();
+
   const features = [
     { icon: Zap, title: 'Body Area Selection', description: 'Choose treatment areas: face, underarms, bikini, legs, arms, or full body.' },
     { icon: Shield, title: 'Skin & Hair Profile Intake', description: 'Detailed assessment of skin type, hair type, and medical contraindications.' },
@@ -130,7 +132,7 @@ export default function ElectrolysisPage() {
                   <span className="text-muted-foreground text-sm">/area</span>
                 </div>
                 <ul className="space-y-2 mb-6">
-                  {pkg.features.map((f) => (
+                  {(pkg.features as string[]).map((f) => (
                     <li key={f} className="flex items-center text-sm text-muted-foreground">
                       <CheckCircle className="h-4 w-4 text-success mr-2 flex-shrink-0" />
                       {f}

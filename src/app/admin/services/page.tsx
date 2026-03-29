@@ -2,9 +2,15 @@ import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import { Plus, Edit, ToggleLeft } from 'lucide-react';
-import { SERVICES } from '@/lib/constants';
+import { redirect } from 'next/navigation';
+import { getSessionUser, getServices } from '@/lib/data';
 
-export default function AdminServicesPage() {
+export default async function AdminServicesPage() {
+  const user = await getSessionUser();
+  if (!user || user.role !== 'admin') redirect('/auth/signin');
+
+  const SERVICES = await getServices();
+
   const serviceStats = [
     { name: 'Physiotherapy', bookings: 124, revenue: '$18,600', active: true },
     { name: 'Dietitian / Nutrition', bookings: 89, revenue: '$10,680', active: true },

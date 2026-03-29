@@ -1,11 +1,27 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Play, Pause, RotateCcw, CheckCircle, ChevronRight, Timer, Repeat, Dumbbell } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
-import { SAMPLE_EXERCISES } from '@/lib/constants';
+
+interface ExerciseData {
+  id: string;
+  name: string;
+  description: string;
+  instructions: string[];
+  precautions: string[];
+}
+
+interface AssignmentData {
+  id: string;
+  sets: number;
+  reps: number;
+  holdSeconds: number | null;
+  exercise: ExerciseData;
+  logs: unknown[];
+}
 
 export default function ExercisesPage() {
   const [activeExercise, setActiveExercise] = useState<number | null>(null);
@@ -13,18 +29,17 @@ export default function ExercisesPage() {
   const [currentRep, setCurrentRep] = useState(0);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [timerSeconds, setTimerSeconds] = useState(0);
+  const [assignments, setAssignments] = useState<AssignmentData[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock assignments
-  const assignments = SAMPLE_EXERCISES.slice(0, 4).map((ex, i) => ({
-    exercise: ex,
-    reps: [12, 15, 10, 30][i],
-    sets: [3, 3, 3, 1][i],
-    holdTime: i === 3 ? 30 : undefined,
-    restTime: 60,
-    completed: i < 2,
-  }));
+  useEffect(() => {
+    fetch('/api/exercises/assignments')
+      .then((r) => r.json())
+      .then((data) => { setAssignments(data); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, []);
 
-  const completedCount = assignments.filter((a) => a.completed).length;
+  const completedCount = assignments.filter((a) => a.logs.length > 0).length;
 
   const handleRepClick = () => {
     if (activeExercise === null) return;
@@ -46,6 +61,24 @@ export default function ExercisesPage() {
     setTimerSeconds(0);
     setIsTimerRunning(false);
   };
+
+  if (loading) {
+    return (
+      <div className="max-w-5xl mx-auto text-center py-16">
+        <p className="text-muted-foreground">Loading exercises...</p>
+      </div>
+    );
+  }
+
+  if (assignments.length === 0) {
+    return (
+      <div className="max-w-5xl mx-auto text-center py-16">
+        <Dumbbell className="h-16 w-16 text-muted-foreground/30 mx-auto mb-4" />
+        <h2 className="text-xl font-bold text-foreground mb-2">No Exercises Assigned</h2>
+        <p className="text-muted-foreground">Your practitioner hasn&apos;t assigned any exercises yet.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-5xl mx-auto">
@@ -74,19 +107,19 @@ export default function ExercisesPage() {
         <div className="lg:col-span-1 space-y-3">
           {assignments.map((assignment, i) => (
             <button
-              key={i}
+              key={assignment.id}
               onClick={() => { setActiveExercise(i); resetExercise(); }}
               className={`w-full text-left p-4 rounded-xl border-2 transition-all cursor-pointer ${
                 activeExercise === i
                   ? 'border-primary bg-primary/5'
-                  : assignment.completed
+                  : assignment.logs.length > 0
                   ? 'border-success/30 bg-success/5'
                   : 'border-border bg-white hover:border-primary/50'
               }`}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
-                  {assignment.completed ? (
+                  {assignment.logs.length > 0 ? (
                     <CheckCircle className="h-5 w-5 text-success mr-3" />
                   ) : (
                     <Dumbbell className="h-5 w-5 text-muted-foreground mr-3" />
@@ -94,7 +127,7 @@ export default function ExercisesPage() {
                   <div>
                     <p className="font-medium text-foreground text-sm">{assignment.exercise.name}</p>
                     <p className="text-xs text-muted-foreground">
-                      {assignment.holdTime ? `${assignment.holdTime}s hold` : `${assignment.reps} reps`} x {assignment.sets} sets
+                      {assignment.holdSeconds ? `${assignment.holdSeconds}s hold` : `${assignment.reps} reps`} x {assignment.sets} sets
                     </p>
                   </div>
                 </div>

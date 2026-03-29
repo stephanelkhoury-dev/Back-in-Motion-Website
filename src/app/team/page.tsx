@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
-import { TEAM_MEMBERS } from '@/lib/constants';
+import { getPractitioners } from '@/lib/data';
 import { Languages } from 'lucide-react';
 
 export const metadata: Metadata = {
@@ -9,7 +9,8 @@ export const metadata: Metadata = {
   description: 'Meet our expert team of physiotherapists, dietitians, aesthetic specialists, and fitness coaches.',
 };
 
-export default function TeamPage() {
+export default async function TeamPage() {
+  const TEAM_MEMBERS = await getPractitioners();
   return (
     <>
       <section className="bg-muted py-20">
@@ -34,17 +35,17 @@ export default function TeamPage() {
                   </span>
                 </div>
                 <h3 className="text-lg font-bold text-foreground">{member.name}</h3>
-                <p className="text-primary text-sm font-medium mb-3">{member.title}</p>
-                <p className="text-muted-foreground text-sm mb-4 leading-relaxed">{member.bio}</p>
+                <p className="text-primary text-sm font-medium mb-3">{member.role.replace('_', ' ')}</p>
+                <p className="text-muted-foreground text-sm mb-4 leading-relaxed">{member.bio || ''}</p>
                 <div className="flex flex-wrap gap-1 justify-center mb-3">
-                  {member.specialties.map((s) => (
+                  {(member.specialties as string[]).map((s) => (
                     <Badge key={s} variant="primary" className="text-xs">{s}</Badge>
                   ))}
                 </div>
-                {member.languages && (
+                {(member.languages as string[]).length > 0 && (
                   <div className="flex items-center justify-center text-xs text-muted-foreground">
                     <Languages className="h-3 w-3 mr-1" />
-                    {member.languages.join(', ')}
+                    {(member.languages as string[]).join(', ')}
                   </div>
                 )}
               </Card>

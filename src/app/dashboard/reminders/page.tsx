@@ -1,17 +1,30 @@
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import { Bell, Calendar, Dumbbell, Clock, CreditCard, Bot } from 'lucide-react';
+import { redirect } from 'next/navigation';
+import { getSessionUser, getClientReminders } from '@/lib/data';
 
-export default function RemindersPage() {
-  const reminders = [
-    { type: 'appointment', icon: Calendar, message: 'Physiotherapy session tomorrow at 10:00 AM with Dr. Nicolas Khoury', time: '1 hour ago', read: false },
-    { type: 'exercise', icon: Dumbbell, message: 'You have 3 exercises to complete today — don\'t break your streak!', time: '3 hours ago', read: false },
-    { type: 'session_balance', icon: Clock, message: 'You have 4 body shaping sessions remaining (expires in 25 days)', time: '1 day ago', read: true },
-    { type: 'follow_up', icon: Bell, message: 'Time for your dietitian follow-up. Book your next consultation.', time: '2 days ago', read: true },
-    { type: 'subscription', icon: CreditCard, message: 'Your E-Coach subscription renews on April 1 ($29/month)', time: '3 days ago', read: true },
-    { type: 'ecoach', icon: Bot, message: 'Your E-Coach has generated a new weekly plan. Check it out!', time: '4 days ago', read: true },
-    { type: 'package_expiry', icon: Clock, message: 'Your Physio 10 Sessions package expires in 60 days', time: '5 days ago', read: true },
-  ];
+const iconMap: Record<string, typeof Bell> = {
+  appointment: Calendar,
+  exercise: Dumbbell,
+  session_balance: Clock,
+  follow_up: Bell,
+  subscription_renewal: CreditCard,
+  package_expiry: Clock,
+};
+
+export default async function RemindersPage() {
+  const user = await getSessionUser();
+  if (!user) redirect('/auth/signin');
+
+  const rawReminders = await getClientReminders(user.id);
+  const reminders = rawReminders.map((r) => ({
+    type: r.type,
+    icon: iconMap[r.type] || Bell,
+    message: r.message,
+    time: new Date(r.scheduledAt).toLocaleDateString(),
+    read: r.isRead,
+  }));
 
   const typeColors: Record<string, 'primary' | 'success' | 'warning' | 'danger' | 'default'> = {
     appointment: 'primary',

@@ -4,7 +4,7 @@ import { CheckCircle } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
-import { PACKAGES } from '@/lib/constants';
+import { getPackages } from '@/lib/data';
 
 export const metadata: Metadata = {
   title: 'Packages & Pricing | Nicolas Web',
@@ -19,7 +19,8 @@ const CATEGORY_LABELS: Record<string, string> = {
   gym: 'Gym & Fitness',
 };
 
-export default function PackagesPage() {
+export default async function PackagesPage() {
+  const PACKAGES = await getPackages();
   const categories = [...new Set(PACKAGES.map((p) => p.category))];
 
   return (
@@ -61,7 +62,7 @@ export default function PackagesPage() {
                       Valid {pkg.validityDays} days
                     </div>
                     <ul className="space-y-2 mb-6 flex-1">
-                      {pkg.features.map((f) => (
+                      {(pkg.features as string[]).map((f) => (
                         <li key={f} className="flex items-center text-sm text-muted-foreground">
                           <CheckCircle className="h-4 w-4 text-success mr-2 flex-shrink-0" />
                           {f}
