@@ -7,7 +7,7 @@ import Badge from '@/components/ui/Badge';
 import { getPackages } from '@/lib/data';
 
 export const metadata: Metadata = {
-  title: 'Nutrition & Dietetics | Nicolas Web',
+  title: 'Nutrition & Dietetics | Back in Motion',
   description: 'Personalized nutrition assessments, custom meal plans, and ongoing dietitian support for your health goals.',
 };
 

@@ -7,7 +7,7 @@ import Badge from '@/components/ui/Badge';
 import { getPackages } from '@/lib/data';
 
 export const metadata: Metadata = {
-  title: 'Body Shaping & Aesthetics | Nicolas Web',
+  title: 'Body Shaping & Aesthetics | Back in Motion',
   description: 'LPG endermologie, cavitation, body firming, lymphatic drainage, and post-pregnancy aesthetic treatments.',
 };
 

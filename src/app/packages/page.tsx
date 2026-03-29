@@ -7,7 +7,7 @@ import Badge from '@/components/ui/Badge';
 import { getPackages } from '@/lib/data';
 
 export const metadata: Metadata = {
-  title: 'Packages & Pricing | Nicolas Web',
+  title: 'Packages & Pricing | Back in Motion',
   description: 'Flexible wellness packages: physiotherapy bundles, dietitian plans, body shaping, hair removal, gym memberships, and E-Coach AI.',
 };
 

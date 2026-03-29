@@ -34,9 +34,7 @@ export default function Footer() {
           {/* Brand */}
           <div>
             <div className="flex items-center space-x-2 mb-4">
-              <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center">
-                <span className="text-white font-bold text-sm">N</span>
-              </div>
+              <img src="/logo.png" alt="Back in Motion" width={32} height={32} className="w-8 h-8" />
               <span className="text-xl font-bold">{COMPANY.name}</span>
             </div>
             <p className="text-gray-400 text-sm leading-relaxed mb-4">

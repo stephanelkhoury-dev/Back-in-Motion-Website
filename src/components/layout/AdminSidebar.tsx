@@ -30,11 +30,9 @@ export default function AdminSidebar() {
     <aside className="w-64 bg-foreground text-white min-h-screen flex flex-col">
       <div className="p-4 border-b border-white/10">
         <div className="flex items-center">
-          <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center mr-3">
-            <span className="text-white font-bold text-xs">N</span>
-          </div>
+          <img src="/logo.png" alt="Back in Motion" width={32} height={32} className="w-8 h-8 mr-3" />
           <div>
-            <p className="font-medium text-white text-sm">Nicolas Web</p>
+            <p className="font-medium text-white text-sm">Back in Motion</p>
             <p className="text-xs text-gray-400">Admin Portal</p>
           </div>
         </div>

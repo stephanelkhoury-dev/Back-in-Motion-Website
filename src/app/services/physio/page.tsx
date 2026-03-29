@@ -7,7 +7,7 @@ import Badge from '@/components/ui/Badge';
 import { getPackages } from '@/lib/data';
 
 export const metadata: Metadata = {
-  title: 'Physiotherapy & Rehabilitation | Nicolas Web',
+  title: 'Physiotherapy & Rehabilitation | Back in Motion',
   description: 'Comprehensive rehabilitation: sports, orthopedic, neurological, pediatric, geriatric, respiratory, and post-pregnancy rehab.',
 };
 

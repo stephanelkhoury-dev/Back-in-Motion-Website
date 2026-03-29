@@ -7,7 +7,7 @@ import { getBlogPosts } from '@/lib/data';
 import { formatDate } from '@/lib/utils';
 
 export const metadata: Metadata = {
-  title: 'Blog & Tips | Nicolas Web',
+  title: 'Blog & Tips | Back in Motion',
   description: 'Expert articles on physiotherapy, nutrition, fitness, body shaping, and wellness from our clinical team.',
 };
 

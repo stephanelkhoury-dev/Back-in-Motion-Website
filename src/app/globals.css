@@ -2,19 +2,19 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
-  --primary: #0D9488;
-  --primary-dark: #0F766E;
-  --primary-light: #5EEAD4;
-  --secondary: #6366F1;
-  --accent: #F59E0B;
-  --muted: #F1F5F9;
-  --muted-foreground: #64748B;
+  --foreground: #1A2332;
+  --primary: #2570B2;
+  --primary-dark: #1A5A8F;
+  --primary-light: #5B9BD5;
+  --secondary: #1E3A5F;
+  --accent: #E8A317;
+  --muted: #F0F4F8;
+  --muted-foreground: #5A6B7E;
   --card: #ffffff;
-  --border: #E2E8F0;
+  --border: #D8E1EB;
   --success: #22C55E;
   --danger: #EF4444;
-  --warning: #F59E0B;
+  --warning: #E8A317;
 }
 
 @theme inline {
@@ -50,6 +50,6 @@ body {
     background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
   }
   .gradient-hero {
-    background: linear-gradient(135deg, #0F766E 0%, #0D9488 30%, #6366F1 100%);
+    background: linear-gradient(135deg, #1A5A8F 0%, #2570B2 30%, #1E3A5F 100%);
   }
 }

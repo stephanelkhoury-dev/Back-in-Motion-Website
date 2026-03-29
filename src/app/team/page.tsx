@@ -5,7 +5,7 @@ import { getPractitioners } from '@/lib/data';
 import { Languages } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Our Team | Nicolas Web',
+  title: 'Our Team | Back in Motion',
   description: 'Meet our expert team of physiotherapists, dietitians, aesthetic specialists, and fitness coaches.',
 };
 

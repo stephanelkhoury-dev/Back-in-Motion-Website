@@ -7,7 +7,7 @@ import Badge from '@/components/ui/Badge';
 import { getPackages } from '@/lib/data';
 
 export const metadata: Metadata = {
-  title: 'Gym & Personal Training | Nicolas Web',
+  title: 'Gym & Personal Training | Back in Motion',
   description: 'Modern gym facilities with personal training, group classes, and AI-powered E-Coach for smart, affordable fitness.',
 };
 

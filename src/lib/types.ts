@@ -1,5 +1,5 @@
 // ============================================
-// Nicolas Web - Core Type Definitions
+// Back in Motion - Core Type Definitions
 // ============================================
 
 // --- User & Auth ---

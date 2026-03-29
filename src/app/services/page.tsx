@@ -7,7 +7,7 @@ import Badge from '@/components/ui/Badge';
 import { getServices } from '@/lib/data';
 
 export const metadata: Metadata = {
-  title: 'Services | Nicolas Web',
+  title: 'Services | Back in Motion',
   description: 'Explore our comprehensive wellness services: physiotherapy, nutrition, body shaping, electrolysis, gym, and AI E-Coach.',
 };
 

@@ -5,8 +5,8 @@ import Link from 'next/link';
 import Button from '@/components/ui/Button';
 
 export const metadata: Metadata = {
-  title: 'About Us | Nicolas Web',
-  description: 'Learn about Nicolas Web — a digital wellness and rehabilitation platform combining expert care with AI-powered coaching.',
+  title: 'About Us | Back in Motion',
+  description: 'Learn about Back in Motion — a digital wellness and rehabilitation platform combining expert care with AI-powered coaching.',
 };
 
 export default function AboutPage() {

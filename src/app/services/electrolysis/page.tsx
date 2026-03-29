@@ -7,7 +7,7 @@ import Badge from '@/components/ui/Badge';
 import { getPackages } from '@/lib/data';
 
 export const metadata: Metadata = {
-  title: 'Electrolysis Hair Removal | Nicolas Web',
+  title: 'Electrolysis Hair Removal | Back in Motion',
   description: 'Permanent electrolysis hair removal safe for all skin and hair types with personalized treatment protocols.',
 };
 

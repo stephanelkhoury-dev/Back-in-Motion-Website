@@ -6,7 +6,7 @@ import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 
 export const metadata: Metadata = {
-  title: 'E-Coach AI | Nicolas Web',
+  title: 'E-Coach AI | Back in Motion',
   description: 'AI-powered wellness coaching: personalized workouts, daily reminders, pain check-ins, and progress tracking at a fraction of the cost.',
 };
 

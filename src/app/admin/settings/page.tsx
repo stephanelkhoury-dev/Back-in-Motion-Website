@@ -49,12 +49,12 @@ export default function AdminSettingsPage() {
           <div className="p-6">
             <h2 className="text-lg font-semibold text-foreground mb-4">General Settings</h2>
             <div className="space-y-4">
-              <Input id="clinic-name" label="Clinic Name" defaultValue="Nicolas Clinic" />
+              <Input id="clinic-name" label="Clinic Name" defaultValue="Back in Motion" />
               <Input id="tagline" label="Tagline" defaultValue="Digital Wellness & Rehabilitation" />
-              <Input id="email" label="Contact Email" defaultValue="info@nicolasclinic.com" type="email" />
+              <Input id="email" label="Contact Email" defaultValue="info@backinmotion.com" type="email" />
               <Input id="phone" label="Phone Number" defaultValue="+961 1 234 567" />
               <Input id="address" label="Address" defaultValue="Beirut, Lebanon" />
-              <Input id="website" label="Website URL" defaultValue="https://nicolasclinic.com" />
+              <Input id="website" label="Website URL" defaultValue="https://backinmotion.com" />
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1">Default Currency</label>
                 <select className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background">

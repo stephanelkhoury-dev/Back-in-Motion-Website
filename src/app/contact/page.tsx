@@ -6,8 +6,8 @@ import Input from '@/components/ui/Input';
 import { COMPANY } from '@/lib/constants';
 
 export const metadata: Metadata = {
-  title: 'Contact | Nicolas Web',
-  description: 'Get in touch with Nicolas Web. Book an appointment, ask a question, or visit our clinic.',
+  title: 'Contact | Back in Motion',
+  description: 'Get in touch with Back in Motion. Book an appointment, ask a question, or visit our clinic.',
 };
 
 export default function ContactPage() {

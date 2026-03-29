@@ -53,9 +53,7 @@ function SignInForm() {
   return (
     <div className="bg-white rounded-2xl p-8 shadow-sm border border-border">
       <div className="text-center mb-8">
-        <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center mx-auto mb-4">
-          <span className="text-white font-bold text-lg">N</span>
-        </div>
+        <img src="/logo.png" alt="Back in Motion" width={48} height={48} className="w-12 h-12 mx-auto mb-4" />
         <h1 className="text-2xl font-bold text-foreground">Welcome Back</h1>
         <p className="text-muted-foreground text-sm mt-1">Sign in to your {COMPANY.name} account</p>
       </div>

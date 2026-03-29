@@ -302,7 +302,7 @@ export const TEAM_MEMBERS: TeamMember[] = [
 // FAQ
 // ============================================
 export const FAQ_ITEMS: FAQItem[] = [
-  { category: 'General', question: 'What services does Nicolas Web offer?', answer: 'We offer physiotherapy and rehabilitation, nutrition and dietetics, body shaping (LPG/Cavitation), electrolysis hair removal, gym and personal training, and an AI-powered E-Coach system.' },
+  { category: 'General', question: 'What services does Back in Motion offer?', answer: 'We offer physiotherapy and rehabilitation, nutrition and dietetics, body shaping (LPG/Cavitation), electrolysis hair removal, gym and personal training, and an AI-powered E-Coach system.' },
   { category: 'General', question: 'How do I book an appointment?', answer: 'You can book an appointment through our online booking system, by calling our reception, or via WhatsApp. Simply select your service, preferred specialist, and choose an available time slot.' },
   { category: 'General', question: 'What are your operating hours?', answer: 'We are open Monday to Friday from 8:00 AM to 8:00 PM, and Saturday from 9:00 AM to 4:00 PM. Sunday is closed.' },
   { category: 'Physio', question: 'Do I need a referral to see a physiotherapist?', answer: 'No referral is needed. You can book directly. However, if you have medical reports or scans, please bring them to your first session.' },
@@ -322,7 +322,7 @@ export const FAQ_ITEMS: FAQItem[] = [
 // Testimonials
 // ============================================
 export const TESTIMONIALS: Testimonial[] = [
-  { id: 't1', clientName: 'Rami S.', service: 'Physiotherapy', content: 'After my knee surgery, the team at Nicolas Web guided me through a complete recovery. The exercise tracking system made it easy to follow my program at home.', rating: 5 },
+  { id: 't1', clientName: 'Rami S.', service: 'Physiotherapy', content: 'After my knee surgery, the team at Back in Motion guided me through a complete recovery. The exercise tracking system made it easy to follow my program at home.', rating: 5 },
   { id: 't2', clientName: 'Diana M.', service: 'Dietitian', content: 'Sarah helped me completely transform my eating habits. The meal plans were realistic and delicious. I lost 8kg in 3 months!', rating: 5 },
   { id: 't3', clientName: 'Lea K.', service: 'Body Shaping', content: 'The LPG treatments were amazing. I could see results after just 4 sessions. The before/after tracking really motivated me to keep going.', rating: 5 },
   { id: 't4', clientName: 'Jad H.', service: 'Gym + E-Coach', content: 'The E-Coach is a game changer. I get AI-guided workouts every day and I only need to see my trainer once a month. Incredible value.', rating: 5 },
@@ -453,11 +453,11 @@ export const SAMPLE_EXERCISES: Exercise[] = [
 // Company Info
 // ============================================
 export const COMPANY = {
-  name: 'Nicolas Web',
+  name: 'Back in Motion',
   tagline: 'Digital Wellness & Rehabilitation System',
   description: 'A comprehensive digital health platform combining expert clinical care with AI-powered coaching for physiotherapy, nutrition, aesthetics, and fitness.',
   phone: '+961 XX XXX XXX',
-  email: 'info@nicolasweb.com',
+  email: 'info@backinmotion.com',
   address: 'Beirut, Lebanon',
   workingHours: {
     weekdays: '8:00 AM – 8:00 PM',
