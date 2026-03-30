@@ -3,7 +3,38 @@
 // ============================================
 
 // --- User & Auth ---
-export type UserRole = 'client' | 'therapist' | 'dietitian' | 'trainer' | 'aesthetic_specialist' | 'receptionist' | 'admin';
+export type UserRole = 'super_admin' | 'admin' | 'manager' | 'therapist' | 'dietitian' | 'trainer' | 'aesthetic_specialist' | 'electrologist' | 'receptionist' | 'client';
+
+// Role hierarchy for permission checks
+export const ROLE_HIERARCHY: Record<UserRole, number> = {
+  super_admin: 100,
+  admin: 80,
+  manager: 60,
+  therapist: 40,
+  dietitian: 40,
+  trainer: 40,
+  aesthetic_specialist: 40,
+  electrologist: 40,
+  receptionist: 30,
+  client: 10,
+};
+
+export const STAFF_ROLES: UserRole[] = ['admin', 'manager', 'therapist', 'dietitian', 'trainer', 'aesthetic_specialist', 'electrologist', 'receptionist'];
+
+export interface Organization {
+  id: string;
+  name: string;
+  slug: string;
+  logo?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  website?: string;
+  timezone: string;
+  currency: string;
+  isActive: boolean;
+  createdAt: string;
+}
 
 export interface User {
   id: string;

@@ -7,7 +7,7 @@ import { getSessionUser, getAllAppointments } from '@/lib/data';
 
 export default async function AdminBookingsPage() {
   const user = await getSessionUser();
-  if (!user || (user.role !== 'admin' && user.role !== 'receptionist')) redirect('/auth/signin');
+  if (!user || !['super_admin', 'admin', 'manager', 'receptionist'].includes(user.role)) redirect('/auth/signin');
 
   const rawAppointments = await getAllAppointments();
   const bookings = rawAppointments.map((a) => ({

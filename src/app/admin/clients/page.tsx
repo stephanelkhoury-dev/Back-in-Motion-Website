@@ -8,7 +8,7 @@ import { getSessionUser, getAdminClients } from '@/lib/data';
 
 export default async function AdminClientsPage() {
   const user = await getSessionUser();
-  if (!user || (user.role !== 'admin' && user.role !== 'receptionist')) redirect('/auth/signin');
+  if (!user || !['super_admin', 'admin', 'manager', 'receptionist'].includes(user.role)) redirect('/auth/signin');
 
   const rawClients = await getAdminClients();
   const clients = rawClients.map((c) => ({

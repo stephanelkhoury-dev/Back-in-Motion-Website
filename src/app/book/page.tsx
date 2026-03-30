@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { Calendar, Clock, User, ArrowRight, ArrowLeft, CheckCircle } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
@@ -45,9 +46,11 @@ const TIME_SLOTS = [
 ];
 
 export default function BookPage() {
+  const { data: session } = useSession();
   const [step, setStep] = useState<BookingStep>('service');
   const [SERVICES, setServices] = useState<ServiceData[]>([]);
   const [TEAM_MEMBERS, setTeamMembers] = useState<PractitionerData[]>([]);
+  const [userDetails, setUserDetails] = useState({ firstName: '', lastName: '', email: '', phone: '' });
 
   useEffect(() => {
     Promise.all([
@@ -58,6 +61,21 @@ export default function BookPage() {
       setTeamMembers(practitioners);
     });
   }, []);
+
+  useEffect(() => {
+    if (session?.user) {
+      fetch('/api/auth/me').then((r) => r.ok ? r.json() : null).then((profile) => {
+        if (profile) {
+          setUserDetails({
+            firstName: profile.firstName || '',
+            lastName: profile.lastName || '',
+            email: profile.email || '',
+            phone: profile.phone || '',
+          });
+        }
+      });
+    }
+  }, [session]);
   const [selectedService, setSelectedService] = useState('');
   const [selectedSpecialist, setSelectedSpecialist] = useState('');
   const [selectedDate, setSelectedDate] = useState('');
@@ -319,14 +337,16 @@ export default function BookPage() {
           {step === 'details' && (
             <div>
               <h2 className="text-2xl font-bold text-foreground mb-2">Your Details</h2>
-              <p className="text-muted-foreground mb-6">Please provide your contact information.</p>
+              <p className="text-muted-foreground mb-6">
+                {session?.user ? 'Your information has been filled from your account.' : 'Please provide your contact information.'}
+              </p>
               <div className="max-w-lg space-y-4">
                 <div className="grid grid-cols-2 gap-4">
-                  <Input id="bookFirstName" label="First Name" placeholder="Your first name" required />
-                  <Input id="bookLastName" label="Last Name" placeholder="Your last name" required />
+                  <Input id="bookFirstName" label="First Name" placeholder="Your first name" value={userDetails.firstName} onChange={(e) => setUserDetails((d) => ({ ...d, firstName: e.target.value }))} required />
+                  <Input id="bookLastName" label="Last Name" placeholder="Your last name" value={userDetails.lastName} onChange={(e) => setUserDetails((d) => ({ ...d, lastName: e.target.value }))} required />
                 </div>
-                <Input id="bookEmail" label="Email" type="email" placeholder="you@example.com" required />
-                <Input id="bookPhone" label="Phone" type="tel" placeholder="+961 XX XXX XXX" required />
+                <Input id="bookEmail" label="Email" type="email" placeholder="you@example.com" value={userDetails.email} onChange={(e) => setUserDetails((d) => ({ ...d, email: e.target.value }))} required />
+                <Input id="bookPhone" label="Phone" type="tel" placeholder="+961 XX XXX XXX" value={userDetails.phone} onChange={(e) => setUserDetails((d) => ({ ...d, phone: e.target.value }))} required />
                 <div>
                   <label htmlFor="bookNotes" className="block text-sm font-medium text-foreground mb-1.5">
                     Additional Notes (optional)

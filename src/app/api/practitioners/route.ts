@@ -39,6 +39,7 @@ export async function GET(request: NextRequest) {
 
     const formatted = practitioners.map((p) => ({
       ...p,
+      name: `${p.firstName} ${p.lastName}`,
       specialties: p.specialties ? JSON.parse(p.specialties) : [],
     }));
 

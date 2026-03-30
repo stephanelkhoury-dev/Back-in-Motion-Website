@@ -39,7 +39,9 @@ function SignInForm() {
     const res = await fetch('/api/auth/me');
     if (res.ok) {
       const user = await res.json();
-      if (user.role === 'admin' || user.role === 'receptionist') {
+      if (user.role === 'super_admin') {
+        router.push('/super-admin');
+      } else if (['admin', 'manager', 'receptionist'].includes(user.role)) {
         router.push('/admin');
       } else {
         router.push(callbackUrl);

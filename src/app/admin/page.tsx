@@ -6,7 +6,7 @@ import { getSessionUser, getAdminAnalytics, getAllAppointments } from '@/lib/dat
 
 export default async function AdminDashboardPage() {
   const user = await getSessionUser();
-  if (!user || (user.role !== 'admin' && user.role !== 'receptionist')) redirect('/auth/signin');
+  if (!user || !['super_admin', 'admin', 'manager', 'receptionist'].includes(user.role)) redirect('/auth/signin');
 
   const analytics = await getAdminAnalytics();
   const allAppointments = await getAllAppointments();

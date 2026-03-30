@@ -15,7 +15,7 @@ export default function Navbar() {
   const { data: session, status } = useSession();
   const isAuth = status === 'authenticated';
   const userRole = (session?.user as unknown as { role?: string })?.role;
-  const isAdmin = userRole === 'admin' || userRole === 'receptionist';
+  const isAdmin = userRole === 'admin' || userRole === 'receptionist' || userRole === 'super_admin' || userRole === 'manager';
 
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-border">

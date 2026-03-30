@@ -7,6 +7,31 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ─── Organizations (Multi-tenant) ───────────────────────────
+
+model Organization {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  logo        String?
+  email       String?
+  phone       String?
+  address     String?
+  website     String?
+  timezone    String   @default("Asia/Beirut")
+  currency    String   @default("USD")
+  settings    String?  // JSON - business hours, branding, etc.
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users    User[]
+  services Service[]
+  packages Package[]
+
+  @@map("organizations")
+}
+
 // ─── Users & Auth ───────────────────────────────────────────
 
 model User {
@@ -16,7 +41,9 @@ model User {
   firstName      String
   lastName       String
   phone          String?
-  role           String    @default("client") // client, therapist, dietitian, trainer, aesthetic_specialist, electrologist, receptionist, admin
+  role           String    @default("client") // super_admin, admin, manager, therapist, dietitian, trainer, aesthetic_specialist, electrologist, receptionist, client
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
   avatarUrl      String?
   isActive       Boolean   @default(true)
   emailVerified  DateTime?
@@ -49,6 +76,7 @@ model User {
   treatmentNotes          TreatmentNote[] @relation("ClientNotes")
   practitionerNotes       TreatmentNote[] @relation("PractitionerNotes")
   sessions                Session[]
+  serviceAccess           StaffServiceAccess[]
 
   @@map("users")
 }
@@ -76,11 +104,14 @@ model Service {
   price            Float
   imageUrl         String?
   isActive         Boolean  @default(true)
+  organizationId   String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
+  organization Organization?  @relation(fields: [organizationId], references: [id])
   appointments Appointment[]
   packages     PackageService[]
+  staffAccess  StaffServiceAccess[]
 
   @@map("services")
 }
@@ -100,9 +131,11 @@ model Package {
   features        String   // JSON array
   isPopular       Boolean  @default(false)
   isActive        Boolean  @default(true)
+  organizationId  String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
+  organization  Organization?  @relation(fields: [organizationId], references: [id])
   services      PackageService[]
   subscriptions Subscription[]
 
@@ -118,6 +151,18 @@ model PackageService {
 
   @@unique([packageId, serviceId])
   @@map("package_services")
+}
+
+model StaffServiceAccess {
+  id        String  @id @default(cuid())
+  userId    String
+  serviceId String
+
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  service   Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, serviceId])
+  @@map("staff_service_access")
 }
 
 model Subscription {

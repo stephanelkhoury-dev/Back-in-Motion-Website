@@ -8,7 +8,7 @@ import { getSessionUser, getAdminStaff } from '@/lib/data';
 
 export default async function AdminStaffPage() {
   const user = await getSessionUser();
-  if (!user || user.role !== 'admin') redirect('/auth/signin');
+  if (!user || !['super_admin', 'admin', 'manager'].includes(user.role)) redirect('/auth/signin');
 
   const rawStaff = await getAdminStaff();
   const staff = rawStaff.filter((s) => s.role !== 'admin').map((s) => ({

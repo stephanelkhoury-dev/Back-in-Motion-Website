@@ -22,6 +22,7 @@ export async function GET() {
         dateOfBirth: true,
         gender: true,
         medicalNotes: true,
+        organizationId: true,
         createdAt: true,
       },
     });

@@ -8,7 +8,7 @@ import { getSessionUser, getAllPayments } from '@/lib/data';
 
 export default async function AdminPaymentsPage() {
   const user = await getSessionUser();
-  if (!user || user.role !== 'admin') redirect('/auth/signin');
+  if (!user || !['super_admin', 'admin', 'manager'].includes(user.role)) redirect('/auth/signin');
 
   const rawPayments = await getAllPayments();
   const transactions = rawPayments.map((p) => ({

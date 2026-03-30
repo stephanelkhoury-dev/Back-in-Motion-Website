@@ -4,9 +4,10 @@ import { hash } from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Seeding database...');
+  console.log('Seeding database...');
 
   // Clean existing data
+  await prisma.staffServiceAccess.deleteMany();
   await prisma.eCoachMessage.deleteMany();
   await prisma.eCoachConversation.deleteMany();
   await prisma.workoutLog.deleteMany();
@@ -29,8 +30,47 @@ async function main() {
   await prisma.promotion.deleteMany();
   await prisma.session.deleteMany();
   await prisma.user.deleteMany();
+  await prisma.organization.deleteMany();
 
   const passwordHash = await hash('password123', 12);
+
+  // ─── Organization ─────────────────────────────────────────
+  const org = await prisma.organization.create({
+    data: {
+      name: 'Back in Motion',
+      slug: 'back-in-motion',
+      email: 'info@backinmotion.com',
+      phone: '+961 1 234 567',
+      address: 'Beirut, Lebanon',
+      website: 'https://backinmotion.com',
+      timezone: 'Asia/Beirut',
+      currency: 'USD',
+      settings: JSON.stringify({
+        businessHours: {
+          weekdays: { open: '08:00', close: '20:00' },
+          saturday: { open: '09:00', close: '16:00' },
+          sunday: null,
+        },
+      }),
+    },
+  });
+
+  console.log('Organization created');
+
+  // ─── Super Admin (platform owner) ────────────────────────
+  await prisma.user.create({
+    data: {
+      email: 'superadmin@backinmotion.com',
+      passwordHash,
+      firstName: 'Stephan',
+      lastName: 'El Khoury',
+      phone: '+961 3 000 000',
+      role: 'super_admin',
+      // super_admin has no organization - they manage all orgs
+    },
+  });
+
+  console.log('Super Admin created');
 
   // ─── Users ────────────────────────────────────────────────
   const admin = await prisma.user.create({
@@ -41,6 +81,7 @@ async function main() {
       lastName: 'Khoury',
       phone: '+961 1 234 567',
       role: 'admin',
+      organizationId: org.id,
       bio: 'Founder & Director of Back in Motion. 15+ years in physiotherapy and rehabilitation.',
       specialties: JSON.stringify(['Practice Management', 'Sports Rehabilitation']),
       languages: JSON.stringify(['English', 'Arabic', 'French']),
@@ -55,6 +96,7 @@ async function main() {
       lastName: 'Nassar',
       phone: '+961 71 111 111',
       role: 'therapist',
+      organizationId: org.id,
       bio: 'Sports rehabilitation specialist with 10 years of experience.',
       specialties: JSON.stringify(['Sports Rehab', 'Post-Surgery Recovery', 'Orthopedic Rehab']),
       languages: JSON.stringify(['English', 'Arabic']),
@@ -69,6 +111,7 @@ async function main() {
       lastName: 'Fadel',
       phone: '+961 71 222 222',
       role: 'therapist',
+      organizationId: org.id,
       bio: 'Neurological and geriatric rehabilitation expert.',
       specialties: JSON.stringify(['Neuro Rehab', 'Geriatric Rehab', 'Chronic Pain']),
       languages: JSON.stringify(['English', 'Arabic', 'French']),
@@ -83,6 +126,7 @@ async function main() {
       lastName: 'Touma',
       phone: '+961 71 333 333',
       role: 'dietitian',
+      organizationId: org.id,
       bio: 'Certified dietitian specializing in sports nutrition and weight management.',
       specialties: JSON.stringify(['Weight Management', 'Sports Nutrition', 'Clinical Nutrition']),
       languages: JSON.stringify(['English', 'Arabic']),
@@ -97,6 +141,7 @@ async function main() {
       lastName: 'Sabbagh',
       phone: '+961 71 444 444',
       role: 'aesthetic_specialist',
+      organizationId: org.id,
       bio: 'LPG Endermologie and body contouring expert.',
       specialties: JSON.stringify(['LPG Endermologie', 'Cavitation', 'RF Skin Tightening']),
       languages: JSON.stringify(['English', 'Arabic', 'French']),
@@ -111,6 +156,7 @@ async function main() {
       lastName: 'Makhlouf',
       phone: '+961 71 555 555',
       role: 'trainer',
+      organizationId: org.id,
       bio: 'Certified personal trainer with focus on strength and HIIT.',
       specialties: JSON.stringify(['Strength Training', 'HIIT', 'Functional Fitness']),
       languages: JSON.stringify(['English', 'Arabic']),
@@ -125,6 +171,7 @@ async function main() {
       lastName: 'Hanna',
       phone: '+961 71 666 666',
       role: 'electrologist',
+      organizationId: org.id,
       bio: 'Experienced electrologist specializing in permanent hair removal.',
       specialties: JSON.stringify(['Thermolysis', 'Blend Method', 'Galvanic']),
       languages: JSON.stringify(['English', 'Arabic']),
@@ -140,6 +187,7 @@ async function main() {
       lastName: 'Saleh',
       phone: '+961 71 123 456',
       role: 'client',
+      organizationId: org.id,
       dateOfBirth: new Date('1990-05-15'),
       gender: 'male',
       medicalNotes: 'ACL reconstruction 3 months ago. Cleared for rehabilitation.',
@@ -154,6 +202,7 @@ async function main() {
       lastName: 'Mansour',
       phone: '+961 70 234 567',
       role: 'client',
+      organizationId: org.id,
       dateOfBirth: new Date('1988-09-22'),
       gender: 'female',
       medicalNotes: 'Seeking weight management and nutrition guidance.',
@@ -168,12 +217,13 @@ async function main() {
       lastName: 'User',
       phone: '+961 70 000 000',
       role: 'client',
+      organizationId: org.id,
       dateOfBirth: new Date('1995-01-10'),
       gender: 'female',
     },
   });
 
-  console.log('✅ Users created');
+  console.log('Users created');
 
   // ─── Services ─────────────────────────────────────────────
   const physioService = await prisma.service.create({
@@ -185,6 +235,7 @@ async function main() {
       shortDescription: 'Expert rehabilitation & pain management',
       duration: 60,
       price: 75,
+      organizationId: org.id,
     },
   });
 
@@ -197,6 +248,7 @@ async function main() {
       shortDescription: 'Custom meal plans & nutrition coaching',
       duration: 45,
       price: 60,
+      organizationId: org.id,
     },
   });
 
@@ -209,6 +261,7 @@ async function main() {
       shortDescription: 'Non-invasive body contouring & skin firming',
       duration: 50,
       price: 90,
+      organizationId: org.id,
     },
   });
 
@@ -221,6 +274,7 @@ async function main() {
       shortDescription: 'Permanent hair removal for all skin types',
       duration: 30,
       price: 50,
+      organizationId: org.id,
     },
   });
 
@@ -233,10 +287,11 @@ async function main() {
       shortDescription: 'Guided workouts & fitness programs',
       duration: 60,
       price: 40,
+      organizationId: org.id,
     },
   });
 
-  console.log('✅ Services created');
+  console.log('Services created');
 
   // ─── Packages ─────────────────────────────────────────────
   const pkg1 = await prisma.package.create({
@@ -248,6 +303,7 @@ async function main() {
       totalSessions: 10,
       price: 650,
       validityDays: 90,
+      organizationId: org.id,
       features: JSON.stringify(['10 in-clinic sessions', 'Dedicated therapist', 'Treatment plan', 'Progress notes', 'Scan upload support']),
       services: { create: { serviceId: physioService.id } },
     },
@@ -264,6 +320,7 @@ async function main() {
       validityDays: 30,
       includesECoach: true,
       isPopular: true,
+      organizationId: org.id,
       features: JSON.stringify(['2 in-clinic PT sessions', 'AI E-Coach daily support', 'Exercise tracking', 'Progress monitoring', 'Pain check-ins']),
       services: { create: { serviceId: physioService.id } },
     },
@@ -279,6 +336,7 @@ async function main() {
       price: 599,
       validityDays: 60,
       includesECoach: true,
+      organizationId: org.id,
       features: JSON.stringify(['8 in-clinic PT sessions', 'AI E-Coach full access', 'Exercise tracking', 'Rehab exercise library', 'Priority booking']),
       services: { create: { serviceId: physioService.id } },
     },
@@ -293,6 +351,7 @@ async function main() {
       totalSessions: 4,
       price: 180,
       validityDays: 30,
+      organizationId: org.id,
       features: JSON.stringify(['4 consultations/month', 'Custom meal plan', 'Macros guidance', 'Food diary review', 'Body measurements']),
       services: { create: { serviceId: dietService.id } },
     },
@@ -308,6 +367,7 @@ async function main() {
       price: 640,
       validityDays: 60,
       isPopular: true,
+      organizationId: org.id,
       features: JSON.stringify(['8 treatment sessions', 'Body assessment', 'Progress photos', 'Treatment plan', 'Aftercare guidance']),
       services: { create: { serviceId: lpgService.id } },
     },
@@ -322,6 +382,7 @@ async function main() {
       totalSessions: 12,
       price: 480,
       validityDays: 120,
+      organizationId: org.id,
       features: JSON.stringify(['12 sessions per area', 'All skin/hair types', 'Consultation included', 'Aftercare support', 'Touch-up sessions']),
       services: { create: { serviceId: electroService.id } },
     },
@@ -336,6 +397,7 @@ async function main() {
       totalSessions: 20,
       price: 100,
       validityDays: 30,
+      organizationId: org.id,
       features: JSON.stringify(['Unlimited gym access', 'Custom workout plan', 'Monthly assessment', 'Locker & amenities', 'App tracking']),
       services: { create: { serviceId: gymService.id } },
     },
@@ -352,6 +414,7 @@ async function main() {
       validityDays: 30,
       includesECoach: true,
       isPopular: true,
+      organizationId: org.id,
       features: JSON.stringify(['Unlimited gym access', 'AI E-Coach support', 'Smart workout tracking', 'Nutrition tips', 'Progress analytics']),
       services: { create: { serviceId: gymService.id } },
     },
@@ -367,11 +430,12 @@ async function main() {
       price: 29,
       validityDays: 30,
       includesECoach: true,
+      organizationId: org.id,
       features: JSON.stringify(['AI E-Coach 24/7', 'Exercise library access', 'Daily check-ins', 'Progress tracking', 'Wellness tips']),
     },
   });
 
-  console.log('✅ Packages created');
+  console.log('Packages created');
 
   // ─── Exercises ────────────────────────────────────────────
   const exercises = await Promise.all([
@@ -432,7 +496,7 @@ async function main() {
     }),
   ]);
 
-  console.log('✅ Exercises created');
+  console.log('Exercises created');
 
   // ─── Subscriptions for demo clients ───────────────────────
   const sub1 = await prisma.subscription.create({
@@ -468,7 +532,7 @@ async function main() {
     },
   });
 
-  console.log('✅ Subscriptions created');
+  console.log('Subscriptions created');
 
   // ─── Appointments ─────────────────────────────────────────
   const apt1 = await prisma.appointment.create({
@@ -539,7 +603,7 @@ async function main() {
     },
   });
 
-  console.log('✅ Appointments created');
+  console.log('Appointments created');
 
   // ─── Treatment Notes ──────────────────────────────────────
   await prisma.treatmentNote.create({
@@ -556,7 +620,7 @@ async function main() {
     },
   });
 
-  console.log('✅ Treatment notes created');
+  console.log('Treatment notes created');
 
   // ─── Exercise Assignments ─────────────────────────────────
   const assignment1 = await prisma.exerciseAssignment.create({
@@ -622,7 +686,7 @@ async function main() {
     },
   });
 
-  console.log('✅ Exercise assignments & logs created');
+  console.log('Exercise assignments & logs created');
 
   // ─── Body Measurements ────────────────────────────────────
   await prisma.bodyMeasurement.createMany({
@@ -633,7 +697,7 @@ async function main() {
     ],
   });
 
-  console.log('✅ Body measurements created');
+  console.log('Body measurements created');
 
   // ─── E-Coach Conversations ────────────────────────────────
   const convo = await prisma.eCoachConversation.create({
@@ -654,7 +718,7 @@ async function main() {
     },
   });
 
-  console.log('✅ E-Coach conversations created');
+  console.log('E-Coach conversations created');
 
   // ─── Payments ─────────────────────────────────────────────
   const payment1 = await prisma.payment.create({
@@ -703,7 +767,7 @@ async function main() {
     },
   });
 
-  console.log('✅ Payments & invoices created');
+  console.log('Payments & invoices created');
 
   // ─── Reminders ────────────────────────────────────────────
   await prisma.reminder.createMany({
@@ -715,7 +779,7 @@ async function main() {
     ],
   });
 
-  console.log('✅ Reminders created');
+  console.log('Reminders created');
 
   // ─── Blog Posts ───────────────────────────────────────────
   await prisma.blogPost.createMany({
@@ -727,7 +791,7 @@ async function main() {
     ],
   });
 
-  console.log('✅ Blog posts created');
+  console.log('Blog posts created');
 
   // ─── FAQ ──────────────────────────────────────────────────
   await prisma.fAQItem.createMany({
@@ -741,7 +805,7 @@ async function main() {
     ],
   });
 
-  console.log('✅ FAQ items created');
+  console.log('FAQ items created');
 
   // ─── Testimonials ─────────────────────────────────────────
   await prisma.testimonial.createMany({
@@ -754,7 +818,7 @@ async function main() {
     ],
   });
 
-  console.log('✅ Testimonials created');
+  console.log('Testimonials created');
 
   // ─── Promotions ───────────────────────────────────────────
   await prisma.promotion.createMany({
@@ -765,13 +829,35 @@ async function main() {
     ],
   });
 
-  console.log('✅ Promotions created');
+  console.log('Promotions created');
 
-  console.log('\n🎉 Database seeded successfully!');
-  console.log('\n📧 Demo accounts:');
-  console.log('  Admin:  admin@backinmotion.com / password123');
-  console.log('  Client: demo@backinmotion.com  / demo123');
-  console.log('  Client: rami@example.com       / password123');
+  // ─── Staff Service Access ─────────────────────────────────
+  await prisma.staffServiceAccess.createMany({
+    data: [
+      // Therapists can do physio
+      { userId: therapist1.id, serviceId: physioService.id },
+      { userId: therapist2.id, serviceId: physioService.id },
+      // Admin (Nicolas) can do physio too
+      { userId: admin.id, serviceId: physioService.id },
+      // Dietitian
+      { userId: dietitian.id, serviceId: dietService.id },
+      // Aesthetician
+      { userId: aesthetician.id, serviceId: lpgService.id },
+      // Electrologist
+      { userId: electrologist.id, serviceId: electroService.id },
+      // Trainer can do gym
+      { userId: trainer.id, serviceId: gymService.id },
+    ],
+  });
+
+  console.log('Staff service access created');
+
+  console.log('\nDatabase seeded successfully!');
+  console.log('\nDemo accounts:');
+  console.log('  Super Admin: superadmin@backinmotion.com / password123');
+  console.log('  Admin:       admin@backinmotion.com      / password123');
+  console.log('  Client:      demo@backinmotion.com       / demo123');
+  console.log('  Client:      rami@example.com            / password123');
 }
 
 main()

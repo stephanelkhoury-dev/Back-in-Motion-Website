@@ -32,6 +32,7 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           name: `${user.firstName} ${user.lastName}`,
           role: user.role,
+          organizationId: user.organizationId,
         };
       },
     }),
@@ -39,15 +40,19 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.role = (user as unknown as { role: string }).role;
-        token.id = user.id;
+        const u = user as unknown as { role: string; id: string; organizationId: string | null };
+        token.role = u.role;
+        token.id = u.id;
+        token.organizationId = u.organizationId;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
-        (session.user as unknown as { id: string; role: string }).id = token.id as string;
-        (session.user as unknown as { id: string; role: string }).role = token.role as string;
+        const u = session.user as unknown as { id: string; role: string; organizationId: string | null };
+        u.id = token.id as string;
+        u.role = token.role as string;
+        u.organizationId = (token.organizationId as string) ?? null;
       }
       return session;
     },
@@ -56,4 +61,16 @@ export const authOptions: NextAuthOptions = {
 
 export function auth() {
   return getServerSession(authOptions);
+}
+
+// Helper to get typed session user
+export async function getAuthUser() {
+  const session = await auth();
+  if (!session?.user) return null;
+  return session.user as unknown as {
+    id: string;
+    role: string;
+    email: string;
+    organizationId: string | null;
+  };
 }

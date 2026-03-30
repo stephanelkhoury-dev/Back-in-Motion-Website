@@ -2,16 +2,17 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { signOut } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
 import { cn } from '@/lib/utils';
 import {
   LayoutDashboard, Calendar, Users, Stethoscope, Package,
-  CreditCard, BarChart3, Settings, LogOut, Tag, Bell, Megaphone
+  CreditCard, BarChart3, Settings, LogOut, Tag, Bell, Megaphone, Shield, UserCog
 } from 'lucide-react';
 
 const ADMIN_LINKS = [
   { label: 'Dashboard', href: '/admin', icon: LayoutDashboard },
   { label: 'Bookings', href: '/admin/bookings', icon: Calendar },
+  { label: 'Team & Users', href: '/admin/users', icon: UserCog },
   { label: 'Clients', href: '/admin/clients', icon: Users },
   { label: 'Staff', href: '/admin/staff', icon: Stethoscope },
   { label: 'Services', href: '/admin/services', icon: Tag },
@@ -25,6 +26,8 @@ const ADMIN_LINKS = [
 
 export default function AdminSidebar() {
   const pathname = usePathname();
+  const { data: session } = useSession();
+  const role = (session?.user as unknown as { role?: string })?.role;
 
   return (
     <aside className="w-64 bg-foreground text-white min-h-screen flex flex-col">
@@ -60,7 +63,16 @@ export default function AdminSidebar() {
         })}
       </nav>
 
-      <div className="p-3 border-t border-white/10">
+      <div className="p-3 border-t border-white/10 space-y-1">
+        {role === 'super_admin' && (
+          <Link
+            href="/super-admin"
+            className="flex items-center w-full px-3 py-2.5 rounded-lg text-sm font-medium text-amber-400 hover:text-amber-300 hover:bg-white/10 transition-colors"
+          >
+            <Shield className="h-4 w-4 mr-3" />
+            Super Admin
+          </Link>
+        )}
         <button
           onClick={() => signOut({ callbackUrl: '/' })}
           className="flex items-center w-full px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"

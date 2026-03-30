@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { getAuthUser } from '@/lib/auth';
 import prisma from '@/lib/db';
 
 // GET /api/admin/clients - list all clients
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user || (session.user as { role: string }).role !== 'admin') {
+    const user = await getAuthUser();
+    if (!user || !['super_admin', 'admin', 'manager', 'receptionist'].includes(user.role)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
