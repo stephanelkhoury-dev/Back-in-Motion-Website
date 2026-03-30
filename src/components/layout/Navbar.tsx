@@ -2,20 +2,43 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { Menu, X, ChevronDown, User, LogOut, LayoutDashboard, Shield } from 'lucide-react';
 import { NAV_LINKS, COMPANY } from '@/lib/constants';
 import Button from '@/components/ui/Button';
 
+interface NavLink {
+  label: string;
+  href: string;
+  children?: { label: string; href: string }[];
+}
+
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [servicesOpen, setServicesOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [dynamicNav, setDynamicNav] = useState<NavLink[] | null>(null);
   const { data: session, status } = useSession();
   const isAuth = status === 'authenticated';
   const userRole = (session?.user as unknown as { role?: string })?.role;
   const isAdmin = userRole === 'admin' || userRole === 'receptionist' || userRole === 'super_admin' || userRole === 'manager';
+
+  useEffect(() => {
+    fetch('/api/navigation')
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data && Array.isArray(data) && data.length > 0) setDynamicNav(data);
+      })
+      .catch(() => {});
+  }, []);
+
+  // Use CMS nav if available, otherwise fall back to static NAV_LINKS
+  const navLinks: NavLink[] = dynamicNav || NAV_LINKS.map(link => ({
+    label: link.label,
+    href: link.href,
+    children: 'children' in link && link.children ? link.children.map(c => ({ label: c.label, href: c.href })) : undefined,
+  }));
 
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-border">
@@ -29,8 +52,8 @@ export default function Navbar() {
 
           {/* Desktop Nav */}
           <div className="hidden lg:flex items-center space-x-1">
-            {NAV_LINKS.map((link) =>
-              'children' in link && link.children ? (
+            {navLinks.map((link) =>
+              link.children ? (
                 <div
                   key={link.href}
                   className="relative"
@@ -47,7 +70,7 @@ export default function Navbar() {
                         href={link.href}
                         className="block px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors font-medium"
                       >
-                        All Services
+                        All {link.label}
                       </Link>
                       <div className="border-t border-border my-1" />
                       {link.children.map((child) => (
@@ -145,8 +168,8 @@ export default function Navbar() {
         {mobileOpen && (
           <div className="lg:hidden py-4 border-t border-border">
             <div className="space-y-1">
-              {NAV_LINKS.map((link) =>
-                'children' in link && link.children ? (
+              {navLinks.map((link) =>
+                link.children ? (
                   <div key={link.href}>
                     <Link
                       href={link.href}

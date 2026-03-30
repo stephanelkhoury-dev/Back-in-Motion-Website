@@ -7,6 +7,9 @@ async function main() {
   console.log('Seeding database...');
 
   // Clean existing data
+  await prisma.page.deleteMany();
+  await prisma.financialAccount.deleteMany();
+  await prisma.expense.deleteMany();
   await prisma.staffServiceAccess.deleteMany();
   await prisma.eCoachMessage.deleteMany();
   await prisma.eCoachConversation.deleteMany();
@@ -851,6 +854,60 @@ async function main() {
   });
 
   console.log('Staff service access created');
+
+  // ─── Financial Accounts ───────────────────────────────────
+  await prisma.financialAccount.createMany({
+    data: [
+      { name: 'Main Business Account', type: 'bank', balance: 25000, currency: 'USD', bankName: 'Bank of Beirut', organizationId: org.id },
+      { name: 'Cash Register', type: 'cash', balance: 1500, currency: 'USD', organizationId: org.id },
+      { name: 'Petty Cash', type: 'petty_cash', balance: 300, currency: 'USD', organizationId: org.id },
+    ],
+  });
+
+  console.log('Financial accounts created');
+
+  // ─── Expenses ────────────────────────────────────────────
+  const now = new Date();
+  await prisma.expense.createMany({
+    data: [
+      { category: 'rent', description: 'Clinic monthly rent', amount: 3000, vendor: 'Property Management LLC', date: new Date(now.getFullYear(), now.getMonth(), 1), isRecurring: true, recurringFreq: 'monthly', organizationId: org.id },
+      { category: 'utilities', description: 'Electricity bill', amount: 450, vendor: 'EDL', date: new Date(now.getFullYear(), now.getMonth(), 5), isRecurring: true, recurringFreq: 'monthly', organizationId: org.id },
+      { category: 'supplies', description: 'Treatment oils and supplies', amount: 280, vendor: 'Medical Supplies Co.', date: new Date(now.getFullYear(), now.getMonth(), 10), organizationId: org.id },
+      { category: 'equipment', description: 'LPG machine maintenance', amount: 500, vendor: 'LPG Technical', date: new Date(now.getFullYear(), now.getMonth(), 15), organizationId: org.id },
+      { category: 'marketing', description: 'Social media ads', amount: 350, vendor: 'Meta Ads', date: new Date(now.getFullYear(), now.getMonth(), 3), isRecurring: true, recurringFreq: 'monthly', organizationId: org.id },
+      { category: 'insurance', description: 'Professional liability insurance', amount: 800, vendor: 'InsureCo', date: new Date(now.getFullYear(), now.getMonth() - 1, 1), isRecurring: true, recurringFreq: 'quarterly', organizationId: org.id },
+      { category: 'salaries', description: 'Staff salaries', amount: 12000, vendor: '', date: new Date(now.getFullYear(), now.getMonth(), 1), isRecurring: true, recurringFreq: 'monthly', organizationId: org.id },
+      { category: 'other', description: 'Cleaning service', amount: 200, vendor: 'CleanPro', date: new Date(now.getFullYear(), now.getMonth(), 8), isRecurring: true, recurringFreq: 'monthly', organizationId: org.id },
+    ],
+  });
+
+  console.log('Expenses created');
+
+  // ─── CMS Pages ────────────────────────────────────────────
+  const servicesPage = await prisma.page.create({
+    data: { title: 'Services', slug: 'services', description: 'Our professional services', isActive: true, showInNav: true, navOrder: 3, icon: 'Stethoscope', organizationId: org.id },
+  });
+
+  await prisma.page.createMany({
+    data: [
+      { title: 'Home', slug: '/', description: 'Welcome to Back in Motion', isActive: true, showInNav: true, navOrder: 0, icon: 'Home', organizationId: org.id },
+      { title: 'About', slug: 'about', description: 'About our clinic', isActive: true, showInNav: true, navOrder: 1, icon: 'Info', organizationId: org.id },
+      { title: 'E-Coach', slug: 'e-coach', description: 'AI wellness coaching', isActive: true, showInNav: true, navOrder: 4, icon: 'Bot', organizationId: org.id },
+      { title: 'Packages', slug: 'packages', description: 'Our packages and pricing', isActive: true, showInNav: true, navOrder: 5, icon: 'Package', organizationId: org.id },
+      { title: 'Team', slug: 'team', description: 'Meet our team', isActive: true, showInNav: true, navOrder: 6, icon: 'Users', organizationId: org.id },
+      { title: 'Blog', slug: 'blog', description: 'Health and wellness articles', isActive: true, showInNav: true, navOrder: 7, icon: 'BookOpen', organizationId: org.id },
+      { title: 'FAQ', slug: 'faq', description: 'Frequently asked questions', isActive: true, showInNav: true, navOrder: 8, icon: 'HelpCircle', organizationId: org.id },
+      { title: 'Contact', slug: 'contact', description: 'Get in touch', isActive: true, showInNav: true, navOrder: 9, icon: 'Mail', organizationId: org.id },
+      // Service subpages
+      { title: 'Physiotherapy', slug: 'services/physio', description: 'Physiotherapy services', isActive: true, showInNav: true, navOrder: 0, navParentId: servicesPage.id, organizationId: org.id },
+      { title: 'Dietitian', slug: 'services/dietitian', description: 'Nutrition services', isActive: true, showInNav: true, navOrder: 1, navParentId: servicesPage.id, organizationId: org.id },
+      { title: 'Body Shaping (LPG/Cavitation)', slug: 'services/lpg-body-shaping', description: 'Body shaping treatments', isActive: true, showInNav: true, navOrder: 2, navParentId: servicesPage.id, organizationId: org.id },
+      { title: 'Electrolysis Hair Removal', slug: 'services/electrolysis', description: 'Electrolysis treatments', isActive: true, showInNav: true, navOrder: 3, navParentId: servicesPage.id, organizationId: org.id },
+      { title: 'Gym & Training', slug: 'services/gym', description: 'Gym and training services', isActive: true, showInNav: true, navOrder: 4, navParentId: servicesPage.id, organizationId: org.id },
+    ],
+  });
+
+  console.log('CMS pages created');
 
   console.log('\nDatabase seeded successfully!');
   console.log('\nDemo accounts:');

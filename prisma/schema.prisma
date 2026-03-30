@@ -28,6 +28,9 @@ model Organization {
   users    User[]
   services Service[]
   packages Package[]
+  expenses Expense[]
+  financialAccounts FinancialAccount[]
+  pages    Page[]
 
   @@map("organizations")
 }
@@ -476,4 +479,70 @@ model Promotion {
   createdAt    DateTime @default(now())
 
   @@map("promotions")
+}
+
+// ─── Finance ────────────────────────────────────────────────
+
+model Expense {
+  id             String   @id @default(cuid())
+  organizationId String?
+  category       String   // rent, utilities, salaries, supplies, equipment, marketing, insurance, other
+  description    String
+  amount         Float
+  currency       String   @default("USD")
+  vendor         String?
+  receiptUrl     String?
+  date           DateTime
+  isRecurring    Boolean  @default(false)
+  recurringFreq  String?  // monthly, quarterly, yearly
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization? @relation(fields: [organizationId], references: [id])
+
+  @@map("expenses")
+}
+
+model FinancialAccount {
+  id             String   @id @default(cuid())
+  organizationId String?
+  name           String
+  type           String   // bank, cash, credit_card, petty_cash
+  balance        Float    @default(0)
+  currency       String   @default("USD")
+  accountNumber  String?
+  bankName       String?
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization? @relation(fields: [organizationId], references: [id])
+
+  @@map("financial_accounts")
+}
+
+// ─── CMS (Content Management) ───────────────────────────────
+
+model Page {
+  id             String   @id @default(cuid())
+  organizationId String?
+  title          String
+  slug           String   @unique
+  description    String?
+  content        String?  // JSON - structured page content (sections, hero, etc.)
+  isActive       Boolean  @default(true)
+  showInNav      Boolean  @default(true)
+  navOrder       Int      @default(0)
+  navParentId    String?
+  icon           String?
+  metaTitle      String?
+  metaDescription String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization? @relation(fields: [organizationId], references: [id])
+  navParent    Page?         @relation("PageChildren", fields: [navParentId], references: [id])
+  children     Page[]        @relation("PageChildren")
+
+  @@map("pages")
 }

@@ -6,7 +6,8 @@ import { signOut, useSession } from 'next-auth/react';
 import { cn } from '@/lib/utils';
 import {
   LayoutDashboard, Calendar, Users, Stethoscope, Package,
-  CreditCard, BarChart3, Settings, LogOut, Tag, Bell, Megaphone, Shield, UserCog
+  CreditCard, BarChart3, Settings, LogOut, Tag, Bell, Megaphone, Shield, UserCog,
+  Wallet, FileText
 } from 'lucide-react';
 
 const ADMIN_LINKS = [
@@ -18,6 +19,8 @@ const ADMIN_LINKS = [
   { label: 'Services', href: '/admin/services', icon: Tag },
   { label: 'Packages', href: '/admin/packages', icon: Package },
   { label: 'Payments', href: '/admin/payments', icon: CreditCard },
+  { label: 'Finance', href: '/admin/finance', icon: Wallet },
+  { label: 'Pages & Nav', href: '/admin/pages', icon: FileText },
   { label: 'Reminders', href: '/admin/reminders', icon: Bell },
   { label: 'Promotions', href: '/admin/promotions', icon: Megaphone },
   { label: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
