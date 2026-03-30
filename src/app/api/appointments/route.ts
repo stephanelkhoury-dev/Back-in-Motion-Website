@@ -47,12 +47,12 @@ export async function GET(request: NextRequest) {
 // POST /api/appointments - create appointment
 const createAppointmentSchema = z.object({
   serviceId: z.string(),
-  practitionerId: z.string(),
+  practitionerId: z.string().optional(),
   date: z.string(),
-  startTime: z.string(),
+  startTime: z.string().regex(/^\d{2}:\d{2}$/, 'Time must be HH:MM format'),
   bookingType: z.enum(['single', 'package']).default('single'),
   subscriptionId: z.string().optional(),
-  notes: z.string().optional(),
+  notes: z.string().max(1000).optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -71,20 +71,63 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Service not found' }, { status: 404 });
     }
 
-    // Calculate end time
+    // Calculate end time using minute arithmetic
     const [hours, minutes] = data.startTime.split(':').map(Number);
-    const endMinutes = hours * 60 + minutes + service.duration;
-    const endTime = `${String(Math.floor(endMinutes / 60)).padStart(2, '0')}:${String(endMinutes % 60).padStart(2, '0')}`;
+    const startTotalMins = hours * 60 + minutes;
+    const endTotalMins = startTotalMins + service.duration;
+    const endTime = `${String(Math.floor(endTotalMins / 60)).padStart(2, '0')}:${String(endTotalMins % 60).padStart(2, '0')}`;
 
-    // Check for overlapping appointments
+    // Resolve practitioner - auto-assign if not specified
+    let practitionerId = data.practitionerId;
+    if (!practitionerId) {
+      // Find available staff for this service category
+      const roleMap: Record<string, string[]> = {
+        physio: ['therapist'],
+        dietitian: ['dietitian'],
+        aesthetic: ['aesthetic_specialist'],
+        electrolysis: ['aesthetic_specialist', 'electrologist'],
+        gym: ['trainer'],
+      };
+      const roles = roleMap[service.category] || ['therapist'];
+      const staff = await prisma.user.findMany({
+        where: { role: { in: roles }, isActive: true },
+        select: { id: true },
+      });
+      if (staff.length === 0) {
+        return NextResponse.json({ error: 'No available specialists for this service' }, { status: 400 });
+      }
+      // Find first staff member without a conflict
+      for (const s of staff) {
+        const conflict = await prisma.appointment.findFirst({
+          where: {
+            practitionerId: s.id,
+            date: new Date(data.date),
+            status: { notIn: ['cancelled', 'no_show'] },
+            AND: [
+              { startTime: { lt: endTime } },
+              { endTime: { gt: data.startTime } },
+            ],
+          },
+        });
+        if (!conflict) {
+          practitionerId = s.id;
+          break;
+        }
+      }
+      if (!practitionerId) {
+        return NextResponse.json({ error: 'No specialists available at this time' }, { status: 409 });
+      }
+    }
+
+    // Check for overlapping appointments (correct interval overlap: A.start < B.end AND A.end > B.start)
     const existing = await prisma.appointment.findFirst({
       where: {
-        practitionerId: data.practitionerId,
+        practitionerId,
         date: new Date(data.date),
         status: { notIn: ['cancelled', 'no_show'] },
-        OR: [
-          { startTime: { lte: data.startTime }, endTime: { gt: data.startTime } },
-          { startTime: { lt: endTime }, endTime: { gte: endTime } },
+        AND: [
+          { startTime: { lt: endTime } },
+          { endTime: { gt: data.startTime } },
         ],
       },
     });
@@ -111,7 +154,7 @@ export async function POST(request: NextRequest) {
     const appointment = await prisma.appointment.create({
       data: {
         clientId: userId,
-        practitionerId: data.practitionerId,
+        practitionerId,
         serviceId: data.serviceId,
         date: new Date(data.date),
         startTime: data.startTime,

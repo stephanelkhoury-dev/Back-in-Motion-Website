@@ -90,6 +90,9 @@ function SignInForm() {
             <input type="checkbox" className="mr-2 rounded border-border" />
             <span className="text-muted-foreground">Remember me</span>
           </label>
+          <Link href="/auth/forgot-password" className="text-primary hover:underline">
+            Forgot password?
+          </Link>
         </div>
         <Button type="submit" className="w-full" size="lg" disabled={loading}>
           {loading ? 'Signing in...' : 'Sign In'}

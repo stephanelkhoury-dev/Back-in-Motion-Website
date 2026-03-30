@@ -82,6 +82,8 @@ export default function BookPage() {
   const [selectedTime, setSelectedTime] = useState('');
   const [bookingType, setBookingType] = useState<'single' | 'package'>('single');
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [bookingError, setBookingError] = useState('');
 
   const currentStepIndex = BOOKING_STEPS.findIndex((s) => s.id === step);
   const service = SERVICES.find((s) => s.id === selectedService);
@@ -110,8 +112,42 @@ export default function BookPage() {
     }
   };
 
-  const handleSubmit = () => {
-    setSubmitted(true);
+  const handleSubmit = async () => {
+    if (!selectedService || !selectedDate || !selectedTime) return;
+    if (!userDetails.firstName || !userDetails.email) {
+      setBookingError('Please fill in your details.');
+      return;
+    }
+
+    setSubmitting(true);
+    setBookingError('');
+
+    try {
+      const res = await fetch('/api/appointments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          serviceId: selectedService,
+          practitionerId: selectedSpecialist || undefined,
+          date: selectedDate,
+          startTime: selectedTime,
+          bookingType,
+          notes: (document.getElementById('bookNotes') as HTMLTextAreaElement)?.value || undefined,
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        setBookingError(err.error || 'Failed to book appointment. Please try again.');
+        return;
+      }
+
+      setSubmitted(true);
+    } catch {
+      setBookingError('Network error. Please check your connection and try again.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (submitted) {
@@ -408,16 +444,19 @@ export default function BookPage() {
 
           {/* Navigation */}
           <div className="flex items-center justify-between mt-10 pt-6 border-t border-border">
+            {bookingError && (
+              <p className="text-sm text-danger mr-4">{bookingError}</p>
+            )}
             <Button
               variant="ghost"
               onClick={goBack}
-              disabled={currentStepIndex === 0}
+              disabled={currentStepIndex === 0 || submitting}
             >
               <ArrowLeft className="h-4 w-4 mr-1" /> Back
             </Button>
             {step === 'confirm' ? (
-              <Button onClick={handleSubmit} size="lg">
-                Confirm Booking <CheckCircle className="ml-2 h-4 w-4" />
+              <Button onClick={handleSubmit} size="lg" disabled={submitting}>
+                {submitting ? 'Booking...' : 'Confirm Booking'} <CheckCircle className="ml-2 h-4 w-4" />
               </Button>
             ) : (
               <Button

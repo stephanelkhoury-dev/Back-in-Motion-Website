@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 import {
   LayoutDashboard, Calendar, Users, Stethoscope, Package,
   CreditCard, BarChart3, Settings, LogOut, Tag, Bell, Megaphone, Shield, UserCog,
-  Wallet, FileText
+  Wallet, FileText, PenSquare, HelpCircle, MessageSquare
 } from 'lucide-react';
 
 const ADMIN_LINKS = [
@@ -21,6 +21,9 @@ const ADMIN_LINKS = [
   { label: 'Payments', href: '/admin/payments', icon: CreditCard },
   { label: 'Finance', href: '/admin/finance', icon: Wallet },
   { label: 'Pages & Nav', href: '/admin/pages', icon: FileText },
+  { label: 'Blog Posts', href: '/admin/blog', icon: PenSquare },
+  { label: 'FAQs', href: '/admin/faq', icon: HelpCircle },
+  { label: 'Testimonials', href: '/admin/testimonials', icon: MessageSquare },
   { label: 'Reminders', href: '/admin/reminders', icon: Bell },
   { label: 'Promotions', href: '/admin/promotions', icon: Megaphone },
   { label: 'Analytics', href: '/admin/analytics', icon: BarChart3 },

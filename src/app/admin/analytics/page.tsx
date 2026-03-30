@@ -1,58 +1,74 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
-import { TrendingUp, Users, Calendar, DollarSign, BarChart3, Activity, Star } from 'lucide-react';
+import { TrendingUp, Users, Calendar, DollarSign, BarChart3, Activity } from 'lucide-react';
+
+interface AnalyticsData {
+  overview: {
+    totalClients: number;
+    activeClients: number;
+    totalAppointments: number;
+    completedAppointments: number;
+    thisMonthAppointments: number;
+    totalRevenue: number;
+    thisMonthRevenue: number;
+    activeSubscriptions: number;
+  };
+  revenueByService: { service: string; category: string; bookings: number }[];
+  recentPayments: { id: string; amount: number; status: string; createdAt: string; client: { firstName: string; lastName: string } }[];
+  upcomingAppointments: { id: string; date: string; startTime: string; status: string; client: { firstName: string; lastName: string }; practitioner: { firstName: string; lastName: string }; service: { name: string } }[];
+}
 
 export default function AdminAnalyticsPage() {
+  const [data, setData] = useState<AnalyticsData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/admin/analytics')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { setData(d); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="max-w-6xl mx-auto">
+        <h1 className="text-2xl font-bold text-foreground mb-6">Analytics</h1>
+        <p className="text-muted-foreground">Loading analytics data...</p>
+      </div>
+    );
+  }
+
+  if (!data) {
+    return (
+      <div className="max-w-6xl mx-auto">
+        <h1 className="text-2xl font-bold text-foreground mb-6">Analytics</h1>
+        <p className="text-muted-foreground">Failed to load analytics data.</p>
+      </div>
+    );
+  }
+
+  const { overview } = data;
+  const completionRate = overview.totalAppointments > 0
+    ? Math.round((overview.completedAppointments / overview.totalAppointments) * 100)
+    : 0;
+
   const kpis = [
-    { label: 'Total Revenue', value: '$48,250', change: '+18%', positive: true, icon: DollarSign },
-    { label: 'Active Clients', value: '187', change: '+12', positive: true, icon: Users },
-    { label: 'Sessions This Month', value: '342', change: '+8%', positive: true, icon: Calendar },
-    { label: 'Client Retention', value: '94%', change: '+2%', positive: true, icon: Activity },
+    { label: 'Total Revenue', value: `$${overview.totalRevenue.toLocaleString()}`, sub: `$${overview.thisMonthRevenue.toLocaleString()} this month`, icon: DollarSign },
+    { label: 'Active Clients', value: `${overview.activeClients}`, sub: `${overview.totalClients} total`, icon: Users },
+    { label: 'Sessions This Month', value: `${overview.thisMonthAppointments}`, sub: `${overview.totalAppointments} total`, icon: Calendar },
+    { label: 'Completion Rate', value: `${completionRate}%`, sub: `${overview.activeSubscriptions} active subs`, icon: Activity },
   ];
 
-  const revenueByService = [
-    { service: 'Physiotherapy', revenue: 18600, percentage: 38 },
-    { service: 'Dietitian', revenue: 10680, percentage: 22 },
-    { service: 'LPG & Body Shaping', revenue: 13400, percentage: 28 },
-    { service: 'Electrolysis', revenue: 3200, percentage: 7 },
-    { service: 'Gym & Fitness', revenue: 2370, percentage: 5 },
-  ];
-
-  const monthlyTrend = [
-    { month: 'Oct', revenue: 32000, sessions: 240 },
-    { month: 'Nov', revenue: 35000, sessions: 268 },
-    { month: 'Dec', revenue: 28000, sessions: 210 },
-    { month: 'Jan', revenue: 38000, sessions: 290 },
-    { month: 'Feb', revenue: 42000, sessions: 310 },
-    { month: 'Mar', revenue: 48250, sessions: 342 },
-  ];
-
-  const topPackages = [
-    { name: 'Physio 10 Sessions', sold: 34, revenue: '$22,100' },
-    { name: 'E-Coach Lite', sold: 56, revenue: '$2,800' },
-    { name: 'Dietitian Monthly', sold: 28, revenue: '$5,040' },
-    { name: 'Physio Lite', sold: 22, revenue: '$4,378' },
-    { name: 'LPG 10 Sessions', sold: 19, revenue: '$5,700' },
-  ];
-
-  const staffPerformance = [
-    { name: 'Dr. Karim Nassar', sessions: 68, clients: 32, satisfaction: 4.9 },
-    { name: 'Maya Touma', sessions: 52, clients: 40, satisfaction: 4.8 },
-    { name: 'Dr. Lina Fadel', sessions: 48, clients: 28, satisfaction: 4.9 },
-    { name: 'Nour Sabbagh', sessions: 45, clients: 22, satisfaction: 4.7 },
-    { name: 'Tony Makhlouf', sessions: 38, clients: 18, satisfaction: 4.6 },
-  ];
-
-  const maxRevenue = Math.max(...revenueByService.map(s => s.revenue));
-  const maxMonthlyRevenue = Math.max(...monthlyTrend.map(m => m.revenue));
+  const maxBookings = Math.max(...data.revenueByService.map(s => s.bookings), 1);
 
   return (
     <div className="max-w-6xl mx-auto">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-foreground">Analytics</h1>
-        <p className="text-muted-foreground text-sm">Business insights and performance metrics.</p>
+        <p className="text-muted-foreground text-sm">Real-time business insights and performance metrics.</p>
       </div>
 
       {/* KPIs */}
@@ -62,120 +78,111 @@ export default function AdminAnalyticsPage() {
             <div className="p-4">
               <div className="flex items-center justify-between mb-2">
                 <kpi.icon className="h-5 w-5 text-primary" />
-                <Badge variant={kpi.positive ? 'success' : 'danger'}>{kpi.change}</Badge>
               </div>
               <p className="text-2xl font-bold text-foreground">{kpi.value}</p>
               <p className="text-sm text-muted-foreground">{kpi.label}</p>
+              <p className="text-xs text-muted-foreground mt-1">{kpi.sub}</p>
             </div>
           </Card>
         ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {/* Revenue Trend */}
-        <Card>
-          <div className="p-5">
-            <div className="flex items-center gap-2 mb-4">
-              <BarChart3 className="h-5 w-5 text-primary" />
-              <h3 className="font-semibold text-foreground">Revenue Trend (6 Months)</h3>
-            </div>
-            <div className="space-y-3">
-              {monthlyTrend.map((m) => (
-                <div key={m.month} className="flex items-center gap-3">
-                  <span className="text-sm text-muted-foreground w-8">{m.month}</span>
-                  <div className="flex-1 bg-muted rounded-full h-6 relative overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-primary to-secondary rounded-full flex items-center justify-end pr-2"
-                      style={{ width: `${(m.revenue / maxMonthlyRevenue) * 100}%` }}
-                    >
-                      <span className="text-xs font-medium text-white">${(m.revenue / 1000).toFixed(0)}k</span>
-                    </div>
-                  </div>
-                  <span className="text-xs text-muted-foreground w-16 text-right">{m.sessions} sessions</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </Card>
-
-        {/* Revenue by Service */}
+        {/* Bookings by Service */}
         <Card>
           <div className="p-5">
             <div className="flex items-center gap-2 mb-4">
               <TrendingUp className="h-5 w-5 text-primary" />
-              <h3 className="font-semibold text-foreground">Revenue by Service</h3>
+              <h3 className="font-semibold text-foreground">Bookings by Service</h3>
             </div>
-            <div className="space-y-4">
-              {revenueByService.map((s) => (
-                <div key={s.service}>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm text-foreground">{s.service}</span>
-                    <span className="text-sm font-medium text-foreground">${s.revenue.toLocaleString()} ({s.percentage}%)</span>
+            {data.revenueByService.length > 0 ? (
+              <div className="space-y-4">
+                {data.revenueByService.map((s) => (
+                  <div key={s.service}>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm text-foreground">{s.service}</span>
+                      <span className="text-sm font-medium text-foreground">{s.bookings} bookings</span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-3">
+                      <div className="h-3 bg-primary rounded-full transition-all" style={{ width: `${(s.bookings / maxBookings) * 100}%` }} />
+                    </div>
                   </div>
-                  <div className="w-full bg-muted rounded-full h-3">
-                    <div
-                      className="h-3 bg-primary rounded-full transition-all"
-                      style={{ width: `${(s.revenue / maxRevenue) * 100}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No completed appointments yet.</p>
+            )}
+          </div>
+        </Card>
+
+        {/* Recent Payments */}
+        <Card>
+          <div className="p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <DollarSign className="h-5 w-5 text-primary" />
+              <h3 className="font-semibold text-foreground">Recent Payments</h3>
             </div>
+            {data.recentPayments.length > 0 ? (
+              <div className="space-y-3">
+                {data.recentPayments.map((p) => (
+                  <div key={p.id} className="flex items-center justify-between py-2 border-b border-border last:border-0">
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{p.client.firstName} {p.client.lastName}</p>
+                      <p className="text-xs text-muted-foreground">{new Date(p.createdAt).toLocaleDateString()}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={p.status === 'completed' ? 'success' : 'warning'}>{p.status}</Badge>
+                      <span className="text-sm font-semibold text-foreground">${p.amount}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No payments yet.</p>
+            )}
           </div>
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Top Packages */}
-        <Card>
-          <div className="p-5">
-            <h3 className="font-semibold text-foreground mb-4">Top Packages</h3>
-            <div className="space-y-3">
-              {topPackages.map((pkg, i) => (
-                <div key={pkg.name} className="flex items-center justify-between py-2 border-b border-border last:border-0">
-                  <div className="flex items-center gap-3">
-                    <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center">{i + 1}</span>
-                    <div>
-                      <p className="text-sm font-medium text-foreground">{pkg.name}</p>
-                      <p className="text-xs text-muted-foreground">{pkg.sold} sold</p>
-                    </div>
-                  </div>
-                  <span className="text-sm font-semibold text-foreground">{pkg.revenue}</span>
-                </div>
-              ))}
-            </div>
+      {/* Upcoming Appointments */}
+      <Card>
+        <div className="p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <BarChart3 className="h-5 w-5 text-primary" />
+            <h3 className="font-semibold text-foreground">Upcoming Appointments</h3>
           </div>
-        </Card>
-
-        {/* Staff Performance */}
-        <Card>
-          <div className="p-5">
-            <h3 className="font-semibold text-foreground mb-4">Staff Performance</h3>
+          {data.upcomingAppointments.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-border">
-                    <th className="text-left py-2 text-xs font-medium text-muted-foreground">Staff</th>
-                    <th className="text-left py-2 text-xs font-medium text-muted-foreground">Sessions</th>
-                    <th className="text-left py-2 text-xs font-medium text-muted-foreground">Clients</th>
-                    <th className="text-left py-2 text-xs font-medium text-muted-foreground">Rating</th>
+                    <th className="text-left py-2 text-xs font-medium text-muted-foreground">Client</th>
+                    <th className="text-left py-2 text-xs font-medium text-muted-foreground">Service</th>
+                    <th className="text-left py-2 text-xs font-medium text-muted-foreground">Practitioner</th>
+                    <th className="text-left py-2 text-xs font-medium text-muted-foreground">Date</th>
+                    <th className="text-left py-2 text-xs font-medium text-muted-foreground">Time</th>
+                    <th className="text-left py-2 text-xs font-medium text-muted-foreground">Status</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {staffPerformance.map((s) => (
-                    <tr key={s.name} className="border-b border-border last:border-0">
-                      <td className="py-2 text-sm font-medium text-foreground">{s.name}</td>
-                      <td className="py-2 text-sm text-muted-foreground">{s.sessions}</td>
-                      <td className="py-2 text-sm text-muted-foreground">{s.clients}</td>
-                      <td className="py-2 text-sm text-foreground flex items-center"><Star className="h-4 w-4 text-yellow-500 mr-1" /> {s.satisfaction}</td>
+                  {data.upcomingAppointments.map((a) => (
+                    <tr key={a.id} className="border-b border-border last:border-0">
+                      <td className="py-2 text-sm text-foreground">{a.client.firstName} {a.client.lastName}</td>
+                      <td className="py-2 text-sm text-muted-foreground">{a.service.name}</td>
+                      <td className="py-2 text-sm text-muted-foreground">{a.practitioner.firstName} {a.practitioner.lastName}</td>
+                      <td className="py-2 text-sm text-muted-foreground">{new Date(a.date).toLocaleDateString()}</td>
+                      <td className="py-2 text-sm text-muted-foreground">{a.startTime}</td>
+                      <td className="py-2"><Badge variant={a.status === 'confirmed' ? 'success' : 'primary'}>{a.status}</Badge></td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-          </div>
-        </Card>
-      </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">No upcoming appointments.</p>
+          )}
+        </div>
+      </Card>
     </div>
   );
 }
